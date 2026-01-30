@@ -1,0 +1,60 @@
+﻿@model KulturAtlasi.Models.Dizi
+
+@{
+    ViewData["Title"] = "Diziyi Sil";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <div class="card border-0 shadow-lg overflow-hidden text-center position-relative" style="border-radius: 20px;">
+
+                <div class="position-absolute w-100 h-100" style="
+                    background-image: url('@(string.IsNullOrEmpty(Model.PosterYolu) ? "https://via.placeholder.com/500" : Model.PosterYolu)');
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(15px) brightness(0.3);
+                    z-index: 0;">
+                </div>
+
+                <div class="card-body p-5 position-relative text-white" style="z-index: 1;">
+
+                    <h2 class="fw-bold mb-4 text-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Silmek İstediğine Emin misin?
+                    </h2>
+
+                    <div class="mb-4">
+                        <img src="@(string.IsNullOrEmpty(Model.PosterYolu) ? "https://via.placeholder.com/300x450?text=Afiş+Yok" : Model.PosterYolu)"
+                             class="img-fluid rounded shadow-lg border border-secondary"
+                             style="max-height: 300px; width: auto;"
+                             alt="@Model.Baslik">
+                    </div>
+
+                    <h3 class="fw-bold">@Model.Baslik</h3>
+                    <p class="text-white-50 fs-5">
+                        @(Model.SezonSayisi ?? 0) Sezon | @(Model.BolumSayisi ?? 0) Bölüm
+                    </p>
+
+                    <div class="alert alert-danger bg-danger bg-opacity-25 border-danger text-white d-inline-block mt-2 px-4">
+                        Bu işlem geri alınamaz! Dizi arşivinden kalıcı olarak silinecek.
+                    </div>
+
+                    <form asp-action="Delete" class="mt-4 d-flex justify-content-center gap-3">
+                        <input type="hidden" asp-for="DiziID" />
+
+                        <a asp-action="Index" class="btn btn-outline-light btn-lg px-4 rounded-pill">
+                            <i class="bi bi-x-lg"></i> Vazgeç
+                        </a>
+
+                        <button type="submit" class="btn btn-danger btn-lg px-5 rounded-pill fw-bold">
+                            <i class="bi bi-trash-fill"></i> Evet, Sil
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

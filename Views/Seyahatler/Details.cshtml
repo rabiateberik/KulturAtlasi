@@ -1,0 +1,221 @@
+﻿@model KulturAtlasi.Models.Seyahat
+
+@{
+    ViewData["Title"] = "Seyahat Detayı";
+}
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentUserId = UserManager.GetUserId(User);
+    bool benimPaylasimim = Model.KullaniciID == currentUserId;
+
+    // Durum Kontrolü
+    string durumMetni = "";
+    if (Model.Durum != null)
+    {
+        durumMetni = Model.Durum.Ad;
+    }
+
+    // Resim Yoksa Varsayılan
+    string arkaPlan = string.IsNullOrEmpty(Model.ResimYolu) ? "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1000" : Model.ResimYolu;
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<div class="container py-5">
+    <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 15px;">
+
+        <div class="position-absolute w-100 h-100" style="
+            background-image: url('@arkaPlan');
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) opacity(0.3);
+            z-index: 0;">
+        </div>
+
+        <div class="row g-0 position-relative" style="z-index: 1;">
+
+            <div class="col-md-5 bg-white bg-opacity-90 p-4 d-flex flex-column h-100">
+
+                <div class="mb-3">
+                    <img src="@arkaPlan" class="img-fluid rounded shadow w-100"
+                         style="max-height: 250px; object-fit: cover;" alt="@Model.Baslik">
+                </div>
+
+                <h2 class="fw-bold text-dark mb-1">@Model.Baslik</h2>
+                <h5 class="text-primary fw-bold mb-3">
+                    <i class="bi bi-geo-alt-fill"></i> @Model.Sehir, @Model.Ulke
+                </h5>
+
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    @{
+                        var renk = "bg-secondary";
+                        if (durumMetni == "Gittim") renk = "bg-success";
+                        if (durumMetni == "Gitmek İstiyorum") renk = "bg-primary";
+                    }
+                    <span class="badge @renk fs-6 px-3 py-2 rounded-pill shadow-sm">@durumMetni</span>
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-tag-fill"></i> @(Model.Tur ?? "Genel")
+                    </span>
+                    @if (Model.ZiyaretTarihi.HasValue)
+                    {
+                        <span class="badge bg-light text-dark border fs-6 px-3 py-2 rounded-pill">
+                            <i class="bi bi-calendar-event"></i> @Model.ZiyaretTarihi.Value.ToString("dd MMM yyyy")
+                        </span>
+                    }
+                </div>
+
+                <div class="mb-4">
+                    @if (benimPaylasimim)
+                    {
+                        if (durumMetni == "Gittim" || durumMetni == "Ziyaret Edildi")
+                        {
+                            <button onclick="bunaBenzerOner('@Model.Sehir - @Model.Ulke', 'Seyahat')" class="btn btn-success w-100 rounded-pill fw-bold shadow-sm animate-pulse-hover">
+                                <i class="bi bi-compass me-2"></i> Sıradaki Rota Neresi Olsun?
+                            </button>
+                        }
+                        else
+                        {
+                            <button onclick="banaBunuSat(@Model.SeyahatID, 'Seyahat')" class="btn btn-warning w-100 rounded-pill fw-bold shadow-sm animate-pulse-hover">
+                                <i class="bi bi-ticket-perforated me-2"></i> Neden Gitmeliyim?
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        <button onclick="banaBunuSat(@Model.SeyahatID, 'Seyahat')" class="btn btn-warning w-100 rounded-pill fw-bold shadow-sm animate-pulse-hover">
+                            <i class="bi bi-ticket-perforated me-2"></i> Neden Gitmeliyim?
+                        </button>
+                    }
+
+                    <div id="aiKutusu" class="alert border-0 shadow-sm mt-3 text-dark position-relative" style="display: none; background-color: #fff3cd;">
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 small" onclick="kapatKutu()"></button>
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="fs-1 lh-1" id="aiIkon">🎒</div>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark" id="aiBaslik">Gezgin Asistan:</h6>
+                                <p class="mb-0 small" id="aiMetni">...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4 flex-grow-1">
+                    <h6 class="fw-bold text-muted border-bottom pb-2">Gezi Notlarım</h6>
+                    <div class="bg-light p-3 rounded border-start border-4 border-warning">
+                        <p class="text-secondary mb-0 fst-italic" style="white-space: pre-line;">
+                            @(string.IsNullOrEmpty(Model.GeziNotu) ? "Henüz bir not girmedin." : Model.GeziNotu)
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-auto d-flex gap-2 pt-3 border-top">
+                    <a asp-action="Edit" asp-route-id="@Model.SeyahatID" class="btn btn-outline-primary fw-bold flex-fill rounded-pill">
+                        <i class="bi bi-pencil-square"></i> Düzenle
+                    </a>
+                    <a asp-action="Index" class="btn btn-outline-dark flex-fill rounded-pill">
+                        <i class="bi bi-arrow-left"></i> Dön
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div id="map" class="h-100 w-100" style="min-height: 500px;"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        // harita kodları 
+        var lat = @(Model.Enlem != 0 ? Model.Enlem.ToString().Replace(",", ".") : "39.0");
+        var lng = @(Model.Boylam != 0 ? Model.Boylam.ToString().Replace(",", ".") : "35.0");
+        var zoom = @(Model.Enlem != 0 ? "13" : "5");
+
+        var map = L.map('map', { zoomControl: false }).setView([lat, lng], zoom);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        L.marker([lat, lng]).addTo(map)
+            .bindPopup("<b>@Model.Baslik</b><br>@Model.Sehir")
+            .openPopup();
+
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        
+        function banaBunuSat(id, tur) {
+            hazirlikYap('✈️', 'alert-warning');
+            fetch('/Kesfet/BanaBunuSat?id=' + id + '&tur=' + tur)
+                .then(res => res.json())
+                .then(data => sonucGoster(data));
+        }
+
+        function bunaBenzerOner(baslik, tur) {
+            hazirlikYap('🧭', 'alert-success');
+            fetch('/Kesfet/BunaBenzerOner?ad=' + baslik + '&tur=' + tur)
+                .then(res => res.json())
+                .then(data => sonucGoster(data));
+        }
+
+        function hazirlikYap(ikon, renk) {
+            var kutu = document.getElementById('aiKutusu');
+            var metin = document.getElementById('aiMetni');
+            var aiIkon = document.getElementById('aiIkon');
+
+            kutu.className = `alert ${renk} border-0 shadow-sm mt-3 text-dark position-relative`;
+            kutu.style.display = 'block';
+            aiIkon.innerText = ikon;
+            metin.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rota hesaplanıyor...';
+        }
+
+        function sonucGoster(data) {
+            var metin = document.getElementById('aiMetni');
+            if(data.success) {
+                metin.innerHTML = "";
+                typeWriter(data.text, metin);
+            } else {
+                metin.innerHTML = "Bağlantı hatası.";
+            }
+        }
+
+        function kapatKutu() {
+             document.getElementById('aiKutusu').style.display = 'none';
+        }
+
+        function typeWriter(text, element, i = 0) {
+            if (i < text.length) {
+                if(text.charAt(i) === '\n') element.innerHTML += '<br>';
+                else element.innerHTML += text.charAt(i);
+                setTimeout(() => typeWriter(text, element, i + 1), 20);
+            }
+        }
+    </script>
+
+    <style>
+        .animate-pulse-hover:hover {
+            animation: pulse 1s infinite;
+        }
+        @@keyframes pulse {
+            0%
+
+        {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.02);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+
+        }
+    </style>
+}

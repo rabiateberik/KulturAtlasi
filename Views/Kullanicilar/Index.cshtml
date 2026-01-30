@@ -1,0 +1,80 @@
+﻿@model IEnumerable<KulturAtlasi.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Topluluk";
+}
+
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-primary"><i class="bi bi-people-fill"></i> KültürAtlası Topluluğu</h2>
+        <p class="text-muted">Senle aynı zevklere sahip insanları keşfet.</p>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+            @foreach (var user in Model)
+            {
+                <div class="col">
+                    <div class="card border-0 shadow-sm h-100 text-center p-4 hover-card">
+
+                        <div class="mx-auto mb-3">
+                            @if (!string.IsNullOrEmpty(user.ProfilFotografiYolu))
+                            {
+                                <img src="@user.ProfilFotografiYolu" class="rounded-circle shadow-sm border"
+                                     style="width: 80px; height: 80px; object-fit: cover;"
+                                     alt="@user.Ad">
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm text-white fw-bold mx-auto"
+                                     style="width: 80px; height: 80px; font-size: 1.5rem; background-color: #0d6efd;">
+
+                                    @{
+                                        string adIlk = !string.IsNullOrEmpty(user.Ad) ? user.Ad.Substring(0, 1).ToUpper() : "?";
+                                        string soyadIlk = !string.IsNullOrEmpty(user.Soyad) ? user.Soyad.Substring(0, 1).ToUpper() : "";
+                                    }
+
+                                    @adIlk@soyadIlk
+                                </div>
+                            }
+                        </div>
+
+                        <h5 class="fw-bold text-dark mb-0">
+                            @user.Ad @user.Soyad
+                        </h5>
+
+                        <small class="text-muted d-block mb-3">@@@user.KullaniciAdi</small>
+
+                        <div class="mt-auto">
+                            <a asp-action="Profil" asp-route-id="@user.Id" class="btn btn-outline-primary rounded-pill w-100 btn-sm fw-bold">
+                                Profili Gör
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <div class="bg-light p-5 rounded-circle d-inline-block mb-3">
+                <i class="bi bi-person-x fs-1 text-muted"></i>
+            </div>
+            <h4 class="text-muted">Henüz kimse yok :(</h4>
+            <p>Gizli sekmeden yeni bir kullanıcı oluşturup deneyebilirsin.</p>
+        </div>
+    }
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+        }
+</style>

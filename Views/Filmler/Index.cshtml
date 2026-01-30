@@ -1,0 +1,89 @@
+﻿@model IEnumerable<KulturAtlasi.Models.Film>
+
+@{
+    ViewData["Title"] = "Film Arşivim";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-camera-reels"></i> Film Arşivim</h2>
+    <a asp-action="Create" class="btn btn-danger rounded-pill px-4">
+        <i class="bi bi-plus-lg"></i> Yeni Film Ekle
+    </a>
+</div>
+
+<div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm film-karti bg-dark text-white">
+
+                <div class="position-relative" style="height: 350px; overflow: hidden; border-radius: 10px;">
+                    @if (!string.IsNullOrEmpty(item.PosterYolu))
+                    {
+                        <img src="@item.PosterYolu" class="card-img-top h-100 w-100" style="object-fit: cover;" alt="@item.Baslik">
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center h-100 bg-secondary">
+                            <i class="bi bi-film fs-1"></i>
+                        </div>
+                    }
+
+                    <span class="position-absolute top-0 end-0 badge m-2 @(item.Durum?.Ad == "İzledim" ? "bg-success" : "bg-warning text-dark")">
+                        @item.Durum?.Ad
+                    </span>
+                </div>
+
+                <div class="card-body p-2 text-center">
+                    <h6 class="card-title fw-bold text-truncate mb-0" title="@item.Baslik">@item.Baslik</h6>
+
+                    @if (!string.IsNullOrEmpty(item.Tur))
+                    {
+                        <small class="d-block text-warning text-truncate mb-1" style="font-size: 0.75rem;">
+                            @item.Tur
+                        </small>
+                    }
+                    <p class="card-text text-white-50 small mb-1">@item.Yil | @item.Yonetmen</p>
+
+                    <div class="text-warning small">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            if (i < (item.KullaniciPuani ?? 0))
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star"></i>
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 d-flex justify-content-center gap-2 pb-3">
+                    <a asp-action="Edit" asp-route-id="@item.FilmID" class="btn btn-sm btn-outline-light rounded-circle"><i class="bi bi-pencil"></i></a>
+                    <a asp-action="Details" asp-route-id="@item.FilmID" class="btn btn-sm btn-outline-info rounded-circle"><i class="bi bi-eye"></i></a>
+                    <a asp-action="Delete" asp-route-id="@item.FilmID" class="btn btn-sm btn-outline-danger rounded-circle"><i class="bi bi-trash"></i></a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-film fs-1"></i>
+        <p class="mt-2">Henüz film eklemedin.</p>
+    </div>
+}
+
+<style>
+    .film-karti {
+        transition: transform 0.2s;
+    }
+
+        .film-karti:hover {
+            transform: scale(1.03);
+            z-index: 10;
+        }
+</style>

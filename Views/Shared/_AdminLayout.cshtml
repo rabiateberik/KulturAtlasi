@@ -1,0 +1,306 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Yönetim Paneli</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #f8f9fa;
+        }
+
+        /* --- SIDEBAR (SOL MENÜ) --- */
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            background-color: #212529;
+            color: white;
+            transition: all 0.3s;
+            position: fixed; /* Sabitlendi */
+            z-index: 1000;
+        }
+
+        /* Mobilde Sidebar'ı Gizle */
+        @@media (max-width: 768px) {
+            .sidebar
+
+        {
+            margin-left: -280px; /* Ekran dışına it */
+        }
+
+        .sidebar.active {
+            margin-left: 0; /* Geri getir */
+        }
+
+        }
+
+        .sidebar a {
+            color: #adb5bd;
+            text-decoration: none;
+            padding: 12px 20px;
+            display: block;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+            .sidebar a:hover, .sidebar a.active {
+                background-color: #0d6efd;
+                color: white;
+            }
+
+        .sidebar i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* --- İÇERİK ALANI --- */
+        .content-wrapper {
+            margin-left: 280px; /* Sidebar kadar boşluk */
+            transition: all 0.3s;
+            width: calc(100% - 280px);
+        }
+
+        /* Mobilde İçerik Alanı Tam Ekran Olsun */
+        @@media (max-width: 768px) {
+            .content-wrapper
+
+        {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        }
+    </style>
+</head>
+<body>
+
+    <div class="d-flex">
+
+        <div class="sidebar p-3" id="sidebar">
+            <div class="d-flex align-items-center mb-4 text-white text-decoration-none">
+                <i class="bi bi-shield-lock-fill fs-3 me-2 text-danger"></i>
+                <span class="fs-4 fw-bold">Yönetim Paneli</span>
+            </div>
+            <hr class="text-secondary">
+
+            <ul class="list-unstyled">
+                <li>
+                    <a asp-controller="Admin" asp-action="Index" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                        <i class="bi bi-speedometer2"></i> Ana Sayfa
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Admin" asp-action="Uyeler" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Uyeler" ? "active" : "")">
+                        <i class="bi bi-people-fill"></i> Üyeler
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Admin" asp-action="GelenKutusu" class="d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Action"]?.ToString() == "GelenKutusu" ? "active" : "")">
+                        <span><i class="bi bi-inbox-fill"></i> Gelen Kutusu</span>
+
+                        @if (ViewBag.OkunmamisMesajSayisi > 0)
+                        {
+                            <span class="badge rounded-circle p-1 bg-primary" style="width: 10px; height: 10px;" title="Yeni Mesaj Var">
+                                <span class="visually-hidden">Yeni Mesaj</span>
+                            </span>
+                        }
+                    </a>
+                </li>
+                <li class="my-3 border-top border-secondary opacity-25"></li>
+                <li class="text-uppercase text-white-50 small fw-bold mb-2 ps-3">İçerik Yönetimi</li>
+
+                <li>
+                    <a asp-controller="Admin" asp-action="KitapYonetimi" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "KitapYonetimi" ? "active" : "")">
+                        <i class="bi bi-book-half"></i> Kitaplar
+                    </a>
+                </li>
+
+                <li>
+                    <a asp-controller="Admin" asp-action="FilmYonetimi" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "FilmYonetimi" ? "active" : "")">
+                        <i class="bi bi-film"></i> Filmler
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Admin" asp-action="DiziYonetimi" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "DiziYonetimi" ? "active" : "")">
+                        <i class="bi bi-tv"></i> Diziler
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Admin" asp-action="MuzikYonetimi" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "MuzikYonetimi" ? "active" : "")">
+                        <i class="bi bi-music-note-beamed"></i> Müzikler
+                    </a>
+                </li>
+
+                <li>
+                    <a asp-controller="Admin" asp-action="SeyahatYonetimi" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "SeyahatYonetimi" ? "active" : "")">
+                        <i class="bi bi-geo-alt"></i> Seyahatler
+                    </a>
+                </li>
+
+                <li>
+                    <a asp-controller="Admin" asp-action="YorumYonetimi" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "YorumYonetimi" ? "active" : "")">
+                        <i class="bi bi-chat-left-quote-fill"></i> Yorumlar
+                    </a>
+                </li>
+                
+            </ul>
+
+            <div class="mt-auto pt-5">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light w-100 text-start">
+                    <i class="bi bi-box-arrow-left"></i> Siteye Dön
+                </a>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4 mb-4">
+                <div class="d-flex align-items-center w-100">
+
+                    <button class="btn btn-light border d-md-none me-3" id="menuToggle">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+
+                    <span class="fw-bold d-none d-md-block text-secondary">
+                        Kültür Atlası Admin Paneli
+                    </span>
+
+                    <div class="ms-auto d-flex align-items-center">
+                        <div class="dropdown">
+                            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" data-bs-toggle="dropdown">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                    A
+                                </div>
+                                <span class="fw-bold d-none d-sm-block">Admin</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow mt-2">
+                                <li>
+                                    <form class="w-100" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="bi bi-power me-2"></i> Çıkış Yap
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid px-4">
+                @RenderBody()
+            </div>
+
+        </div>
+        <div class="modal fade" id="adminAtaModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-dark text-white border-0 shadow-lg">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title fw-bold">Yetki Yönetimi</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <input type="email" id="searchEmail" class="form-control" placeholder="E-posta ile ara...">
+                            <button class="btn btn-warning" onclick="checkUser()">Sorgula</button>
+                        </div>
+
+                        <div id="resultArea" class="mt-4 text-center" style="display:none;">
+                            <hr class="border-secondary">
+                            <p id="userInfo" class="fw-bold"></p>
+                            <form asp-action="YetkiDegistir" method="post">
+                                <input type="hidden" name="userId" id="targetUserId">
+                                <input type="hidden" name="yapilsinMi" id="actionType">
+                                <button type="submit" id="actionBtn" class="btn w-100 fw-bold"></button>
+                            </form>
+                        </div>
+                        <div id="errorArea" class="text-danger small text-center"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+                function checkUser() {
+            var email = document.getElementById("searchEmail").value;
+            var resultArea = document.getElementById("resultArea");
+            var errorArea = document.getElementById("errorArea");
+
+            fetch('/Admin/KullaniciYetkiKontrol?email=' + email)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        errorArea.innerText = "";
+                        resultArea.style.display = "block";
+                        document.getElementById("userInfo").innerText = data.userName;
+                        document.getElementById("targetUserId").value = data.userId;
+
+                        var btn = document.getElementById("actionBtn");
+                        if (data.isAdmin) {
+                            btn.innerText = "Yetkiyi Kaldır";
+                            btn.className = "btn btn-outline-danger w-100";
+                            document.getElementById("actionType").value = "false";
+                        } else {
+                            btn.innerText = "Yönetici Yap";
+                            btn.className = "btn btn-success w-100";
+                            document.getElementById("actionType").value = "true";
+                        }
+                    } else {
+                        resultArea.style.display = "none";
+                        errorArea.innerText = data.message;
+                    }
+                });
+
+        }
+    </script>
+    @if (TempData["Mesaj"] != null)
+    {
+        <script>
+            Swal.fire({ // Veya normal alert('...')
+                icon: 'success',
+                title: 'Başarılı!',
+                text: '@TempData["Mesaj"]',
+                timer: 3000
+            });
+        </script>
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+           <style>
+    /* Sidebar'ı dikeyde esnek yap */
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Menü listesini kaydırılabilir yap ama scroll barı gizle */
+    .sidebar-menu-list {
+        flex-grow: 1;
+        overflow-y: auto;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+        .sidebar-menu-list::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+           </style>

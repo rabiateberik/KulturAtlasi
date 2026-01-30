@@ -1,0 +1,128 @@
+﻿@model IEnumerable<KulturAtlasi.Models.Muzik>
+
+@{
+    ViewData["Title"] = "Müzik Kütüphanem";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-music-note-list text-info"></i> Müzik Kütüphanem</h2>
+    <a asp-action="Create" class="btn btn-info text-white rounded-pill px-4 fw-bold">
+        <i class="bi bi-plus-lg"></i> Müzik Ekle
+    </a>
+</div>
+
+<div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm muzik-karti bg-dark text-white">
+
+                <div class="position-relative m-2">
+                    <div style="aspect-ratio: 1/1; overflow: hidden; border-radius: 8px;">
+                        <img src="@(string.IsNullOrEmpty(item.KapakResmiYolu) ? "https://via.placeholder.com/300" : item.KapakResmiYolu)"
+                             class="w-100 h-100" style="object-fit: cover;" alt="@item.Baslik">
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(item.DinlemeLinki))
+                    {
+                        <div class="play-icon position-absolute top-50 start-50 translate-middle"
+                             style="cursor: pointer; opacity: 0; transition: 0.3s;"
+                             onclick="muzikCal(this, '@item.DinlemeLinki')">
+
+                            <i class="bi bi-play-circle-fill text-success bg-white rounded-circle"
+                               style="font-size: 3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"></i>
+                        </div>
+                    }
+
+                    <span class="position-absolute top-0 end-0 badge m-2 @(item.Durum?.Ad == "Dinledim" ? "bg-secondary" : "bg-danger")">
+                        @item.Durum?.Ad
+                    </span>
+                </div>
+
+                <div class="card-body p-2 text-center">
+                    <h6 class="card-title fw-bold text-truncate mb-0">@item.Baslik</h6>
+                    <p class="card-text text-white-50 small mb-1 text-truncate">@item.Sanatci</p>
+
+                    <div class="text-warning small">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            if (i < (item.KullaniciPuani ?? 0))
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            else
+                            {
+
+                                <i class="bi bi-star text-secondary"></i>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent border-0 d-flex justify-content-center gap-2 pb-3">
+                    <a asp-action="Edit" asp-route-id="@item.MuzikID" class="btn btn-sm btn-outline-light rounded-circle"><i class="bi bi-pencil"></i></a>
+                    <a asp-action="Details" asp-route-id="@item.MuzikID" class="btn btn-sm btn-outline-info rounded-circle"><i class="bi bi-eye"></i></a>
+                    <a asp-action="Delete" asp-route-id="@item.MuzikID" class="btn btn-sm btn-outline-danger rounded-circle"><i class="bi bi-trash"></i></a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-headphones fs-1"></i>
+        <p class="mt-2">Henüz müzik eklemedin.</p>
+    </div>
+}
+
+<script>
+    var currentAudio = null;
+    var currentIcon = null;
+
+    function muzikCal(element, url) {
+        var icon = element.querySelector("i");
+
+        // Eğer şu an çalan şarkı buysa -> DURDUR
+        if (currentAudio && currentAudio.src === url && !currentAudio.paused) {
+            currentAudio.pause();
+            icon.classList.remove("bi-pause-circle-fill");
+            icon.classList.add("bi-play-circle-fill");
+            return;
+        }
+
+        // Eğer başka bir şarkı çalıyorsa -> ONU DURDUR VE İKONUNU DÜZELT
+        if (currentAudio) {
+            currentAudio.pause();
+            if(currentIcon) {
+                currentIcon.classList.remove("bi-pause-circle-fill");
+                currentIcon.classList.add("bi-play-circle-fill");
+            }
+        }
+
+        // Yeni şarkıyı çal
+        currentAudio = new Audio(url);
+        currentIcon = icon;
+
+        currentAudio.play();
+        icon.classList.remove("bi-play-circle-fill");
+        icon.classList.add("bi-pause-circle-fill"); // İkonu Pause yap
+
+        // Şarkı bitince ikonu tekrar Play yap
+        currentAudio.onended = function() {
+            icon.classList.remove("bi-pause-circle-fill");
+            icon.classList.add("bi-play-circle-fill");
+        };
+    }
+</script>
+
+<style>
+    .muzik-karti:hover .play-icon {
+        opacity: 1 !important;
+    }
+
+    .play-icon:hover {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+</style>

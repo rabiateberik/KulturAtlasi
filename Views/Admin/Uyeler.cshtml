@@ -1,0 +1,201 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model KulturAtlasi.Models.UyeListesiViewModel
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Üye Yönetimi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var currentUserId = UserManager.GetUserId(User);
+}
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+
+@if (currentUser.Email == "rabia@gmail.com")
+{
+    <button type="button" class="btn btn-warning fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#adminAtaModal">
+        <i class="bi bi-shield-lock-fill me-2"></i> Yetki Yönetimi
+    </button>
+}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark mb-0">Üye Yönetimi</h2>
+        <form asp-controller="Admin" asp-action="Uyeler" method="get" class="d-flex" style="max-width: 300px;">
+            <div class="input-group">
+                <input type="text" name="search" value="@Model.SearchTerm" class="form-control border-0 shadow-sm" placeholder="İsim veya Email ara..." />
+                <button class="btn btn-primary shadow-sm" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+                @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                {
+                    <a asp-action="Uyeler" class="btn btn-outline-secondary shadow-sm">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+
+    @if (TempData["Mesaj"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm"><i class="bi bi-check-circle-fill me-2"></i> @TempData["Mesaj"]</div>
+    }
+    @if (TempData["Hata"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm"><i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Hata"]</div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive" style="min-height: 400px;">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary">
+                    <tr>
+                        <th class="ps-4">Kullanıcı</th>
+                        <th>Email</th>
+                        <th>Durum</th>
+                        <th class="text-end pe-4">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Users.Count == 0)
+                    {
+                        <tr><td colspan="4" class="text-center py-5 text-muted">Kayıt bulunamadı.</td></tr>
+                    }
+
+                    @foreach (var user in Model.Users)
+                    {
+                        var isBanned = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow;
+
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width:40px; height:40px; font-weight:bold;">
+                                        @user.Email?.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">@(user.Ad ?? "İsimsiz") @(user.Soyad ?? "")</div>
+                                        <small class="text-muted">@user.UserName</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@user.Email</td>
+
+                            <td>
+                                @if (isBanned)
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 rounded-pill">
+                                        <i class="bi bi-slash-circle me-1"></i> Yasaklı
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 rounded-pill">
+                                        <i class="bi bi-check-circle me-1"></i> Aktif
+                                    </span>
+                                }
+                            </td>
+
+                            <td class="text-end pe-4">
+                                @if (user.Id != currentUserId)
+                                {
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm border shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
+                                            @if (isBanned)
+                                            {
+                                                <li class="dropdown-header small text-uppercase fw-bold text-success border-bottom mb-1">Yasak Yönetimi</li>
+                                                <li>
+                                                    <form asp-action="KullaniciBanKaldir" method="post">
+                                                        <input type="hidden" name="userId" value="@user.Id" />
+                                                        <button type="submit" class="dropdown-item rounded-2 text-success fw-bold">
+                                                            <i class="bi bi-unlock-fill me-2"></i> Yasağı Kaldır
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            }
+                                            else
+                                            {
+                                                <li class="dropdown-header small text-uppercase fw-bold text-muted border-bottom mb-1">Yasaklama Ayarları</li>
+
+                                                <li>
+                                                    <form asp-action="KullaniciBanla" method="post">
+                                                        <input type="hidden" name="userId" value="@user.Id" />
+                                                        <button type="submit" name="sure" value="3Ay" class="dropdown-item rounded-2 text-warning">
+                                                            <i class="bi bi-clock-history me-2"></i> 3 Ay Yasakla
+                                                        </button>
+                                                    </form>
+                                                </li>
+
+                                                <li>
+                                                    <form asp-action="KullaniciBanla" method="post">
+                                                        <input type="hidden" name="userId" value="@user.Id" />
+                                                        <button type="submit" name="sure" value="6Ay" class="dropdown-item rounded-2 text-warning">
+                                                            <i class="bi bi-clock-history me-2"></i> 6 Ay Yasakla
+                                                        </button>
+                                                    </form>
+                                                </li>
+
+                                                <li>
+                                                    <form asp-action="KullaniciBanla" method="post" onsubmit="return confirm('Bu kullanıcıyı KALICI olarak yasaklamak istediğine emin misin?');">
+                                                        <input type="hidden" name="userId" value="@user.Id" />
+                                                        <button type="submit" name="sure" value="Tamamen" class="dropdown-item rounded-2 text-danger fw-bold">
+                                                            <i class="bi bi-person-x-fill me-2"></i> Sınırsız Yasakla
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            }
+
+                                            <li><hr class="dropdown-divider"></li>
+
+                                            <li>
+                                                <form asp-action="UyeSil" method="post" onsubmit="return confirm('BU İŞLEM GERİ ALINAMAZ! Kullanıcı tamamen silinecek!');">
+                                                    <input type="hidden" name="id" value="@user.Id" />
+                                                    <button type="submit" class="dropdown-item rounded-2 text-muted">
+                                                        <i class="bi bi-trash3 me-2 text-danger"></i> Hesabı Sil
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small fst-italic pe-2">Siz</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer bg-white py-3 border-top-0">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0 shadow-sm">
+                        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                            <a class="page-link border-0" asp-route-page="@(Model.CurrentPage - 1)" asp-route-search="@Model.SearchTerm">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item active">
+                            <span class="page-link border-0 bg-primary px-4">@Model.CurrentPage / @Model.TotalPages</span>
+                        </li>
+                        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                            <a class="page-link border-0" asp-route-page="@(Model.CurrentPage + 1)" asp-route-search="@Model.SearchTerm">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>

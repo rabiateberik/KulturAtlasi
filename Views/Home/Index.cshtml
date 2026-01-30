@@ -1,0 +1,311 @@
+﻿@model KulturAtlasi.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Genel Bakış";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Hoş Geldin, @ViewBag.AdSoyad 👋</h2>
+            <p class="text-muted">İşte kültür arşivinin güncel durumu.</p>
+        </div>
+        <a href="/Kesfet/Index" class="btn btn-outline-primary rounded-pill">
+            <i class="bi bi-people-fill"></i> Sosyal Akışa Git
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 text-uppercase small fw-bold">Toplam Kitap</h6>
+                            <h2 class="fw-bold mb-0">@Model.ToplamKitap</h2>
+                        </div>
+                        <i class="bi bi-book fs-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 text-uppercase small fw-bold">İzlenen Film</h6>
+                            <h2 class="fw-bold mb-0">@Model.ToplamFilm</h2>
+                        </div>
+                        <i class="bi bi-film fs-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 text-uppercase small fw-bold">Dizi / Müzik</h6>
+                            <h2 class="fw-bold mb-0">@(Model.ToplamDizi + Model.ToplamMuzik)</h2>
+                        </div>
+                        <i class="bi bi-tv fs-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 text-uppercase small fw-bold">Gezilen Ülke</h6>
+                            <h2 class="fw-bold mb-0">@Model.GezilenUlkeSayisi</h2>
+                        </div>
+                        <i class="bi bi-globe-americas fs-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-secondary"><i class="bi bi-pie-chart-fill"></i> Tür Analizi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 text-center">
+                            <h6 class="text-muted small mb-3">Kitap Türlerin</h6>
+                            <div style="height: 250px;">
+                                <canvas id="chartKitap"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <h6 class="text-muted small mb-3">Film Türlerin</h6>
+                            <div style="height: 250px;">
+                                <canvas id="chartFilm"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+
+            <div class="card border-0 shadow-sm bg-light mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="fw-bold mb-0 text-secondary"><i class="bi bi-clock-history"></i> Son Eklenenler</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush bg-transparent">
+
+                        @if (Model.SonKitap != null)
+                        {
+                            <a href="/Kitaplar/Details/@Model.SonKitap.KitapID" class="list-group-item list-group-item-action bg-transparent d-flex gap-3 py-3 align-items-center border-0">
+                                <img src="@(Model.SonKitap.KapakResmiYolu ?? "https://via.placeholder.com/50")" class="rounded shadow-sm" width="50" height="75" style="object-fit: cover;">
+                                <div>
+                                    <h6 class="mb-1 fw-bold text-dark">@Model.SonKitap.Baslik</h6>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary">Kitap</span>
+                                    <small class="text-muted ms-1">@Model.SonKitap.Yazar</small>
+                                </div>
+                            </a>
+                        }
+
+                        @if (Model.SonFilm != null)
+                        {
+                            <a href="/Filmler/Details/@Model.SonFilm.FilmID" class="list-group-item list-group-item-action bg-transparent d-flex gap-3 py-3 align-items-center border-0">
+                                <img src="@(Model.SonFilm.PosterYolu ?? "https://via.placeholder.com/50")" class="rounded shadow-sm" width="50" height="75" style="object-fit: cover;">
+                                <div>
+                                    <h6 class="mb-1 fw-bold text-dark">@Model.SonFilm.Baslik</h6>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger">Film</span>
+                                    <small class="text-muted ms-1">@Model.SonFilm.Yonetmen</small>
+                                </div>
+                            </a>
+                        }
+
+                        @if (Model.SonSeyahat != null)
+                        {
+                            <a href="/Seyahatler/Details/@Model.SonSeyahat.SeyahatID" class="list-group-item list-group-item-action bg-transparent d-flex gap-3 py-3 align-items-center border-0">
+                                <img src="@(Model.SonSeyahat.ResimYolu ?? "https://via.placeholder.com/50")" class="rounded shadow-sm" width="75" height="50" style="object-fit: cover;">
+                                <div>
+                                    <h6 class="mb-1 fw-bold text-dark">@Model.SonSeyahat.Baslik</h6>
+                                    <span class="badge bg-success bg-opacity-10 text-success">Seyahat</span>
+                                    <small class="text-muted ms-1">@Model.SonSeyahat.Sehir</small>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm bg-white">
+                <div class="card-header bg-white border-0 py-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-stars text-warning fs-4"></i>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">Yapay Zeka Öneriyor</h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">Senin ve arkadaşlarının zevkine göre</small>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="aiContent" class="list-group list-group-flush">
+
+                        <div id="aiLoading" class="text-center py-5">
+                            <div class="spinner-border text-warning mb-2" role="status" style="width: 2rem; height: 2rem;"></div>
+                            <p class="text-muted small mb-0">Zevklerin analiz ediliyor...</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .animation-fade-in {
+        animation: fadeIn 0.8s ease-in-out;
+    }
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+</style>
+
+<script>
+    // --- 1. GRAFİKLER (SENİN KODUN) ---
+    var kitapData = @Html.Raw(Json.Serialize(Model.KitapTurDagilimi));
+
+    if (Object.keys(kitapData).length > 0) {
+        var ctxKitap = document.getElementById('chartKitap').getContext('2d');
+        new Chart(ctxKitap, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(kitapData),
+                datasets: [{
+                    data: Object.values(kitapData),
+                    backgroundColor: [
+                        '#4e54c8', '#8f94fb', '#ff9a9e', '#fecfef', '#f6d365', '#fda085'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    } else {
+        document.getElementById('chartKitap').parentElement.innerHTML = "<div class='d-flex align-items-center justify-content-center h-100 text-muted small'>Henüz veri yok</div>";
+    }
+
+    // --- FİLM GRAFİĞİ ---
+    var filmData = @Html.Raw(Json.Serialize(Model.FilmTurDagilimi));
+
+    if (Object.keys(filmData).length > 0) {
+        var ctxFilm = document.getElementById('chartFilm').getContext('2d');
+        new Chart(ctxFilm, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(filmData),
+                datasets: [{
+                    data: Object.values(filmData),
+                    backgroundColor: [
+                        '#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    } else {
+        document.getElementById('chartFilm').parentElement.innerHTML = "<div class='d-flex align-items-center justify-content-center h-100 text-muted small'>Henüz veri yok</div>";
+    }
+
+    // --- 2. YAPAY ZEKA ÖNERİSİNİ ÇEK (AJAX / FETCH) ---
+    document.addEventListener("DOMContentLoaded", function() {
+
+        // Controller'daki yeni metoda istek atıyoruz
+        fetch('/Home/YapayZekaOneriGetir')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('aiContent');
+                const loading = document.getElementById('aiLoading');
+
+                // Yükleniyor simgesini gizle
+                if(loading) loading.style.display = 'none';
+
+                if (data.success && data.oneriler && data.oneriler.length > 0) {
+
+                    // Gelen her öneri için HTML oluştur
+                    let htmlContent = "";
+
+                    // JSON'daki property isimleri genelde küçük harfle gelir (baslik, aciklama)
+                    data.oneriler.forEach(item => {
+                        htmlContent += `
+                            <div class="list-group-item border-0 py-3 animation-fade-in">
+                                <div class="d-flex gap-3">
+                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-lightbulb-fill text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold text-dark">${item.baslik}</h6>
+                                        <p class="mb-0 text-muted small" style="line-height: 1.4;">${item.aciklama}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = htmlContent;
+
+                } else {
+                    // Eğer veri yoksa veya hata varsa
+                    container.innerHTML = `
+                        <div class="text-center py-4 text-muted small">
+                            <i class="bi bi-emoji-neutral fs-4 mb-2 d-block"></i>
+                            Şu an sana uygun bir öneri bulamadım.<br>Biraz daha içerik ekleyip tekrar gel!
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('AI Hatası:', error);
+                const container = document.getElementById('aiContent');
+                container.innerHTML = `
+                    <div class="text-center py-4 text-muted small">
+                        <i class="bi bi-wifi-off fs-4 mb-2 d-block"></i>
+                        Bağlantı sorunu oluştu.
+                    </div>
+                `;
+            });
+    });
+</script>

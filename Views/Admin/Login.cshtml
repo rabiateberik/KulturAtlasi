@@ -1,0 +1,141 @@
+﻿@model KulturAtlasi.ViewModels.AdminLoginViewModel
+@{
+    Layout = null; // Hiçbir layout kullanmasın, tamamen bağımsız olsun
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yönetici Girişi - Kültür Atlası</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-color: #121212; /* Tam siyah değil, modern koyu gri */
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .login-card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .form-control {
+            background-color: #2c2c2c;
+            border: 1px solid #444;
+            color: #fff;
+        }
+
+            .form-control:focus {
+                background-color: #333;
+                border-color: #666;
+                color: #fff;
+                box-shadow: none;
+            }
+
+        .btn-admin {
+            background: linear-gradient(45deg, #d32f2f, #b71c1c); /* Kırmızı tonları */
+            border: none;
+            color: white;
+            font-weight: bold;
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+            .btn-admin:hover {
+                opacity: 0.9;
+                transform: scale(1.02);
+            }
+
+        .logo-icon {
+            font-size: 3rem;
+            color: #d32f2f;
+        }
+        /* İkonun olduğu kutunun focus hali */
+        .input-group:focus-within .form-control,
+        .input-group:focus-within .input-group-text {
+            border-color: #666 !important;
+        }
+
+        .input-group-text:hover i {
+            color: #fff !important; /* Üzerine gelince ikon parlasın */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card text-center">
+        <div class="mb-4">
+            <i class="bi bi-shield-lock-fill logo-icon"></i>
+            <h3 class="mt-2 fw-light">YÖNETİM PANELİ</h3>
+            <p class="text-muted small">Sadece yetkili personel giriş yapabilir.</p>
+        </div>
+
+        <form asp-action="Login" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 text-start small mb-3"></div>
+
+            <div class="mb-3 text-start">
+                <label class="form-label text-secondary small">Email Adresi</label>
+                <input asp-for="Email" class="form-control" placeholder="admin@kulturatlasi.com" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4 text-start">
+                <label class="form-label text-secondary small">Şifre</label>
+                <div class="input-group">
+                    <input asp-for="Password" id="adminPassword" type="password" class="form-control border-end-0" placeholder="••••••" />
+                    <span class="input-group-text border-start-0" style="background-color: #2c2c2c; border-color: #444; cursor: pointer;" onclick="toggleAdminSifre()">
+                        <i id="adminEyeIcon" class="bi bi-eye text-secondary"></i>
+                    </span>
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4 form-check text-start">
+                <input asp-for="RememberMe" class="form-check-input bg-dark border-secondary" />
+                <label class="form-check-label text-muted small">Oturumu açık tut</label>
+            </div>
+
+            <button type="submit" class="btn btn-admin">
+                GÜVENLİ GİRİŞ
+            </button>
+        </form>
+
+        <div class="mt-4 border-top border-secondary pt-3">
+            <a href="/" class="text-decoration-none text-muted small hover-white">
+                <i class="bi bi-arrow-left"></i> Siteye Dön
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
+<script>
+    function toggleAdminSifre() {
+        var passwordInput = document.getElementById("adminPassword");
+        var eyeIcon = document.getElementById("adminEyeIcon");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            eyeIcon.classList.replace("bi-eye", "bi-eye-slash");
+        } else {
+            passwordInput.type = "password";
+            eyeIcon.classList.replace("bi-eye-slash", "bi-eye");
+        }
+    }
+</script>

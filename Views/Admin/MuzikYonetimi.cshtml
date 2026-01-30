@@ -1,0 +1,163 @@
+﻿@model IEnumerable<KulturAtlasi.Models.Muzik>
+
+@{
+    ViewData["Title"] = "Müzik Yönetimi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0"><i class="bi bi-music-note-beamed text-info"></i> Müzik Arşivi</h3>
+            <p class="text-muted small">Sistemdeki şarkı ve albümleri yönet.</p>
+        </div>
+        <a href="/Muzikler/Create" class="btn btn-info text-white rounded-pill shadow-sm fw-bold">
+            <i class="bi bi-plus-lg"></i> Yeni Müzik
+        </a>
+    </div>
+
+    @if (TempData["Mesaj"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Mesaj"]
+        </div>
+    }
+    @if (TempData["Hata"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm">
+            <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["Hata"]
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Kapak</th>
+                        <th>Şarkı / Sanatçı</th>
+                        <th>Ekleyen</th>
+                        <th>Albüm / Yıl</th>
+                        <th class="text-end pe-4">Yönet</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4" width="80">
+                                <div class="img-guvenlik">
+                                    <img src="@(string.IsNullOrEmpty(item.KapakResmiYolu) ? "https://via.placeholder.com/75" : item.KapakResmiYolu)" class="rounded shadow-sm">
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="fw-bold text-dark">@item.Baslik</div>
+                                <div class="text-muted small">
+                                    <i class="bi bi-mic-fill me-1"></i>@(item.Sanatci ?? "Bilinmiyor")
+                                </div>
+                                <div class="mt-1">
+                                    <span class="badge bg-info bg-opacity-10 text-dark border border-info">@(item.Tur ?? "Genel")</span>
+
+                                    @if (!string.IsNullOrEmpty(item.DinlemeLinki))
+                                    {
+                                        <a href="@item.DinlemeLinki" target="_blank" class="text-success ms-1" title="Önizlemeyi Dinle">
+                                            <i class="bi bi-play-circle-fill"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+
+                            <td>
+                                @if (item.Kullanici != null)
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width:30px; height:30px; font-weight:bold; font-size:12px;">
+                                            @item.Kullanici.UserName?.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <span class="small fw-bold">@item.Kullanici.UserName</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Anonim</span>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="small text-muted">@(item.Album ?? "-")</span>
+                                    @if (item.Yil != null)
+                                    {
+                                        <span class="badge bg-light text-dark border" style="width: fit-content;">@item.Yil</span>
+                                    }
+                                </div>
+                            </td>
+
+                            <td class="text-end pe-4">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a href="/Muzikler/Details/@item.MuzikID" target="_blank" class="btn btn-sm btn-light border" title="Sitede Gör">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+
+                                    <form asp-action="MuzikSilAdmin" asp-route-id="@item.MuzikID" method="post" onsubmit="return confirm('Bu müziği silersen ekleyen kişinin listesinden de silinir. Emin misin?');">
+                                        <button type="submit" class="btn btn-sm btn-danger text-white shadow-sm px-3">
+                                            <i class="bi bi-trash-fill"></i> SİL
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="d-flex justify-content-center py-4 border-top">
+                <nav aria-label="Sayfalama">
+                    <ul class="pagination pagination-sm m-0">
+                        <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link border-0 text-secondary" asp-action="MuzikYonetimi" asp-route-page="@(ViewBag.CurrentPage - 1)"><i class="bi bi-chevron-left"></i></a>
+                        </li>
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                                <a class="page-link border-0 rounded-circle mx-1 @(ViewBag.CurrentPage == i ? "bg-info text-white shadow" : "text-secondary")" asp-action="MuzikYonetimi" asp-route-page="@i">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                            <a class="page-link border-0 text-secondary" asp-action="MuzikYonetimi" asp-route-page="@(ViewBag.CurrentPage + 1)"><i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">Henüz müzik eklenmemiş.</div>
+        }
+    </div>
+</div>
+
+<style>
+    /* Resimlere buzlu cam efekti */
+    .img-guvenlik img {
+        width: 50px;
+        height: 50px; /* Müzik kapakları genelde karedir */
+        object-fit: cover;
+        border-radius: 6px;
+        
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+        .img-guvenlik img:hover {
+            filter: blur(0);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+</style>

@@ -1,0 +1,149 @@
+﻿@model IEnumerable<KulturAtlasi.Models.Seyahat>
+
+@{
+    ViewData["Title"] = "Seyahatlerim";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-success"><i class="bi bi-globe-americas"></i> Seyahatlerim</h2>
+            <p class="text-muted small mb-0">Dünyadaki ayak izlerin.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-success text-white rounded-pill px-4 fw-bold shadow-sm">
+            <i class="bi bi-geo-alt-fill"></i> Yeni Rota Ekle
+        </a>
+    </div>
+
+    <div class="card shadow border-0 mb-5 overflow-hidden">
+        <div class="card-body p-0">
+            <div id="mainMap" style="height: 450px; width: 100%;"></div>
+        </div>
+        <div class="card-footer bg-light text-muted small text-center py-2">
+            <i class="bi bi-info-circle-fill text-primary"></i> Harita üzerindeki iğnelere tıklayarak detayları görebilirsin.
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm seyahat-karti">
+
+                        <div class="position-relative" style="height: 200px; overflow: hidden; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                            @if (!string.IsNullOrEmpty(item.ResimYolu))
+                            {
+                                <img src="@item.ResimYolu" class="w-100 h-100" style="object-fit: cover;"
+                                     alt="@item.Baslik"
+                                     onerror="this.src='https://placehold.co/400x200?text=Foto+Yok'">
+                            }
+                            else
+                            {
+                                <div class="w-100 h-100 bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center text-muted">
+                                    <div class="text-center"><i class="bi bi-camera-fill fs-1"></i></div>
+                                </div>
+                            }
+
+                            @{
+                                var renk = "bg-secondary";
+                                if (item.Durum?.Ad == "Gittim") { renk = "bg-success"; }
+                                if (item.Durum?.Ad == "Gitmek İstiyorum") { renk = "bg-warning text-dark"; }
+                                if (item.Durum?.Ad == "Favorilerim") { renk = "bg-danger"; }
+                            }
+                            <span class="position-absolute top-0 end-0 badge m-2 @renk shadow-sm">
+                                @item.Durum?.Ad
+                            </span>
+                        </div>
+
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-dark mb-1 text-truncate">@item.Baslik</h5>
+                            <p class="text-muted small mb-2"><i class="bi bi-geo-alt-fill text-danger"></i> @item.Sehir, @item.Ulke</p>
+                            <span class="badge bg-light text-dark border mb-3">@item.Tur</span>
+                            <p class="card-text text-muted small text-truncate">@(item.GeziNotu ?? "Not girilmemiş.")</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 d-flex justify-content-center gap-3 pb-3 pt-0">
+                            <a asp-action="Edit" asp-route-id="@item.SeyahatID" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <a asp-action="Details" asp-route-id="@item.SeyahatID" class="btn btn-outline-info btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            <a asp-action="Delete" asp-route-id="@item.SeyahatID" class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-map fs-1"></i>
+            <p class="mt-2">Henüz bir seyahat rotası eklemedin.</p>
+        </div>
+    }
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    // 1. Haritayı Başlat
+    var map = L.map('mainMap').setView([39.0, 35.0], 3);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // 2. Controller'dan Gelen Temiz Veriyi Al
+    var seyahatler = @Html.Raw(ViewBag.HaritaJson ?? "[]");
+
+    var markers = [];
+
+    // 3. İğneleri Ekle
+    if (seyahatler && seyahatler.length > 0) {
+        seyahatler.forEach(function(item) {
+            if (item.enlem && item.boylam) {
+                var marker = L.marker([item.enlem, item.boylam]).addTo(map);
+
+                var popupContent = `
+                    <div class="text-center">
+                        <strong>${item.baslik}</strong><br>
+                        <span class="text-muted">${item.sehir || ''}, ${item.ulke || ''}</span><br>
+                        <span class="badge bg-success">${item.tur || ''}</span>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                markers.push(marker);
+            }
+        });
+
+        // 4. Haritayı Ortala
+        if (markers.length > 0) {
+            var group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+    }
+</script>
+
+<style>
+    .seyahat-karti {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .seyahat-karti:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+        }
+</style>

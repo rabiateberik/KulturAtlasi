@@ -1,0 +1,391 @@
+﻿@model List<KulturAtlasi.Models.AkisViewModel>
+
+@{
+    ViewData["Title"] = "Keşfet";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+
+        <div class="col-md-3 d-none d-md-block">
+            <div class="card border-0 shadow-sm text-center sticky-top" style="top: 80px;">
+                <div class="card-body">
+                    <img src="@(ViewBag.ProfilResmi ?? "https://ui-avatars.com/api/?name=User&background=random")"
+                         class="rounded-circle mb-3 shadow-sm" width="80" height="80" style="object-fit: cover;">
+
+                    <h5 class="fw-bold mb-1">Sosyal Akış</h5>
+                    <p class="text-muted small">Neler olup bittiğini gör.</p>
+
+                    <hr>
+
+                    <div class="d-grid gap-2 text-start">
+                        <a href="/Home/Index" class="btn btn-light btn-sm text-start"><i class="bi bi-speedometer2 me-2"></i> İstatistiklerim</a>
+                        <a href="/Kullanicilar" class="btn btn-light btn-sm text-start"><i class="bi bi-people me-2"></i> İnsanları Keşfet</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8 col-lg-6">
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <form asp-action="PaylasimYap" method="post">
+                        <div class="d-flex gap-3">
+                            <img src="@(ViewBag.ProfilResmi ?? "https://ui-avatars.com/api/?name=User&background=random")"
+                                 class="rounded-circle" width="50" height="50">
+
+                            <div class="w-100">
+                                <textarea name="Icerik" class="form-control border-0 bg-light" rows="2"
+                                          placeholder="Aklından neler geçiyor? Bir kitap, film veya düşünce paylaş..." required></textarea>
+
+                                <input type="hidden" name="PaylasimTuru" value="Düşünce" id="inputPaylasimTuru">
+                                <input type="hidden" name="IlgiliIcerikTuru" id="inputIcerikTuru">
+
+                                <div id="icerikSecimAlani" class="mt-2" style="display:none;">
+                                    <select id="selectKitap" class="form-select form-select-sm icerik-listesi" style="display:none;">
+                                        <option value="" selected disabled>Hangi Kitap?</option>
+                                        @if (ViewBag.Kitaplarim != null)
+                                        {
+                                            foreach (var item in ViewBag.Kitaplarim)
+                                            {
+                                                <option value="@item.Id">@item.Ad</option>
+                                            }
+                                        }
+                                    </select>
+
+                                    <select id="selectFilm" class="form-select form-select-sm icerik-listesi" style="display:none;">
+                                        <option value="" selected disabled>Hangi Film?</option>
+                                        @if (ViewBag.Filmlerim != null)
+                                        {
+                                            foreach (var item in ViewBag.Filmlerim)
+                                            {
+                                                <option value="@item.Id">@item.Ad</option>
+                                            }
+                                        }
+                                    </select>
+
+                                    <select id="selectDizi" class="form-select form-select-sm icerik-listesi" style="display:none;">
+                                        <option value="" selected disabled>Hangi Dizi?</option>
+                                        @if (ViewBag.Dizilerim != null)
+                                        {
+                                            foreach (var item in ViewBag.Dizilerim)
+                                            {
+                                                <option value="@item.Id">@item.Ad</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick="menuAc('Kitap')"><i class="bi bi-book"></i> Kitap</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="menuAc('Film')"><i class="bi bi-film"></i> Film</button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning text-dark border-0" onclick="menuAc('Dizi')"><i class="bi bi-tv"></i> Dizi</button>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm px-4 rounded-pill">Paylaş</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var post in Model)
+                {
+                    <div class="card border-0 shadow-sm mb-4 post-card" id="post-@post.PaylasimID">
+                        <div class="card-body p-3">
+                            <div class="d-flex gap-3">
+                                <a href="/Kullanicilar/Profil/@post.KullaniciID">
+                                    <img src="@(post.ProfilResmi ?? $"https://ui-avatars.com/api/?name={post.AdSoyad}&background=random")"
+                                         class="rounded-circle border" width="50" height="50" style="object-fit: cover;">
+                                </a>
+
+                                <div class="w-100">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <a href="/Kullanicilar/Profil/@post.KullaniciID" class="fw-bold text-dark text-decoration-none fs-6">
+                                                @post.AdSoyad
+                                            </a>
+                                            <span class="text-muted small ms-1">@Html.Raw(post.Eylem)</span>
+                                            <div class="text-muted" style="font-size:0.8rem;">@post.ZamanGecenSure</div>
+                                        </div>
+
+                                        @if (post.KullaniciID == (string)ViewBag.CurrentUserId)
+                                        {
+                                            <div class="dropdown">
+                                                <button class="btn btn-link text-muted p-0 text-decoration-none" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                                                    <li>
+                                                        <button class="dropdown-item" onclick="modalAc(@post.PaylasimID)">
+                                                            <i class="bi bi-pencil me-2 text-warning"></i> Düzenle
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item text-danger" onclick="paylasimSil(@post.PaylasimID)">
+                                                            <i class="bi bi-trash me-2"></i> Sil
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        }
+
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(post.YorumMetni))
+                                    {
+                                        <p class="mt-2 text-dark mb-2">@post.YorumMetni</p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(post.IcerikTuru) && post.IcerikTuru != "Düşünce")
+                                    {
+                                        string defaultImg = "https://placehold.co/100x150?text=Eser";
+                                        string link = $"/{(post.IcerikTuru == "Kitap" ? "Kitaplar" : (post.IcerikTuru == "Film" ? "Filmler" : "Diziler"))}/Details/{post.IcerikId}";
+
+                                        <div class="d-flex gap-3 mt-3 p-2 bg-light rounded align-items-center border cursor-pointer hover-bg-gray"
+                                             onclick="window.location.href='@link'">
+
+                                            <img src="@(post.IcerikResim ?? defaultImg)"
+                                                 width="50" height="75" class="rounded object-fit-cover shadow-sm"
+                                                 onerror="this.src='@defaultImg'">
+
+                                            <div>
+                                                <span class="badge bg-white text-dark border mb-1" style="font-size:0.7rem;">@post.IcerikTuru</span>
+                                                <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 250px;">@post.IcerikBaslik</h6>
+                                            </div>
+
+                                            <div class="ms-auto text-muted pe-2"><i class="bi bi-chevron-right"></i></div>
+                                        </div>
+                                    }
+
+                                    <div class="d-flex gap-4 mt-3 pt-3 border-top text-muted align-items-center">
+                                        <div class="d-flex align-items-center gap-2 cursor-pointer hover-icon" onclick="begen(@post.PaylasimID, this)">
+                                            @if (post.BegendiMi)
+                                            {
+                                                <i class="bi bi-heart-fill text-danger fs-5 heart-icon"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-heart fs-5 heart-icon"></i>
+                                            }
+                                            <span class="small fw-bold like-count">@post.BegeniSayisi</span>
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-2 cursor-pointer hover-icon" onclick="yorumKutusunuAc(@post.PaylasimID)">
+                                            <i class="bi bi-chat fs-5"></i>
+                                            <span class="small fw-bold comment-count">@post.YorumSayisi</span>
+                                        </div>
+                                    </div>
+
+                                    <div id="yorum-alani-@post.PaylasimID" class="mt-3 bg-light p-3 rounded border" style="display:none;">
+                                        <div id="yorumlar-listesi-@post.PaylasimID" class="mb-3">
+                                            @if (post.Yorumlar != null)
+                                            {
+                                                @foreach (var yorum in post.Yorumlar)
+                                                {
+                                                    <div class="d-flex gap-2 mb-2">
+                                                        <img src="@(yorum.YazanResim ?? "https://placehold.co/30")" class="rounded-circle" width="30" height="30">
+                                                        <div class="bg-white p-2 rounded border w-100">
+                                                            <div class="d-flex justify-content-between">
+                                                                <span class="fw-bold small">@yorum.YazanAd</span>
+                                                                <span class="text-muted" style="font-size:0.6rem;">@yorum.Tarih</span>
+                                                            </div>
+                                                            <p class="mb-0 small text-dark">@yorum.Icerik</p>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <input type="text" id="txtYorum-@post.PaylasimID" class="form-control form-control-sm rounded-pill" placeholder="Yorum yaz..." onkeypress="enterBasildi(event, @post.PaylasimID)">
+                                            <button class="btn btn-primary btn-sm rounded-circle" onclick="yorumGonder(@post.PaylasimID)"><i class="bi bi-send-fill"></i></button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5 bg-white rounded shadow-sm">
+                    <h5 class="fw-bold">Akışın Sessiz</h5>
+                    <p class="text-muted px-4 small">Bir şeyler paylaşarak veya arkadaş takip ederek başla.</p>
+                    <a href="/Kullanicilar" class="btn btn-outline-primary rounded-pill px-4 btn-sm">Topluluğu Keşfet</a>
+                </div>
+            }
+        </div>
+
+        <div class="col-md-3 d-none d-lg-block"></div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="akisDuzenleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow" id="modalIcerik">
+        </div>
+    </div>
+</div>
+<script>
+    // --- 1. MENÜ KONTROLLERİ ---
+    function menuAc(tur) {
+        document.querySelectorAll('.icerik-listesi').forEach(el => {
+            el.style.display = 'none';
+            el.disabled = true;
+            el.removeAttribute('name');
+        });
+        document.getElementById("icerikSecimAlani").style.display = "block";
+        document.getElementById("inputPaylasimTuru").value = "İnceleme";
+        document.getElementById("inputIcerikTuru").value = tur;
+        var hedef = document.getElementById("select" + tur);
+        if (hedef) {
+            hedef.style.display = "block";
+            hedef.disabled = false;
+            hedef.setAttribute('name', 'IlgiliIcerikID');
+        }
+    }
+
+    // --- 2. BEĞENİ ---
+    function begen(id, element) {
+        fetch('/Kesfet/Begen?id=' + id, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                var icon = element.querySelector('.heart-icon');
+                var countSpan = element.querySelector('.like-count');
+                if(data.begenildi) {
+                    icon.classList.remove('bi-heart'); icon.classList.add('bi-heart-fill', 'text-danger', 'animate-heart');
+                } else {
+                    icon.classList.remove('bi-heart-fill', 'text-danger', 'animate-heart'); icon.classList.add('bi-heart');
+                }
+                countSpan.innerText = data.sayi;
+            }
+        });
+    }
+
+    // --- 3. YORUM ---
+    function yorumKutusunuAc(id) {
+        var alan = document.getElementById('yorum-alani-' + id);
+        alan.style.display = alan.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function yorumGonder(id) {
+        var input = document.getElementById('txtYorum-' + id);
+        var mesaj = input.value;
+        if(!mesaj) return;
+
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append('yorum', mesaj);
+
+        fetch('/Kesfet/YorumYap', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                var liste = document.getElementById('yorumlar-listesi-' + id);
+                var html = `
+                    <div class="d-flex gap-2 mb-2">
+                        <img src="${data.resim || 'https://placehold.co/30'}" class="rounded-circle" width="30" height="30">
+                        <div class="bg-white p-2 rounded border w-100">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${data.ad}</span>
+                                <span class="text-muted" style="font-size:0.6rem;">Şimdi</span>
+                            </div>
+                            <p class="mb-0 small text-dark">${data.yorum}</p>
+                        </div>
+                    </div>
+                `;
+                liste.insertAdjacentHTML('beforeend', html);
+                input.value = "";
+            }
+        });
+    }
+
+    function enterBasildi(e, id) {
+        if(e.keyCode === 13) {
+            e.preventDefault();
+            yorumGonder(id);
+        }
+    }
+
+    // --- 4. DÜZENLEME İŞLEMLERİ (YENİ İSİMLE) ---
+
+    // PENCEREYİ AÇ
+    function modalAc(id) {
+        // 👇👇👇 DİKKAT: ARTIK YENİ ID'Yİ ÇAĞIRIYORUZ (akisDuzenleModal) 👇👇👇
+        var myModal = new bootstrap.Modal(document.getElementById('akisDuzenleModal'));
+        myModal.show();
+
+        // Yükleniyor animasyonu
+        document.getElementById('modalIcerik').innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-primary"></div></div>';
+
+        // Veriyi çek (Controller'ın '_PostDuzenle' dosyasını döndürmesi lazım!)
+        fetch('/Kesfet/PaylasimDuzenleGetir/' + id)
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('modalIcerik').innerHTML = html;
+            });
+    }
+
+    // KAYDET
+    function paylasimKaydet() {
+        var form = document.getElementById('paylasimDuzenleForm');
+        var formData = new FormData(form);
+
+        fetch('/Kesfet/PaylasimDuzenleKaydet', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Sayfayı yenile
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        });
+    }
+
+    // SİL
+    function paylasimSil(id) {
+        if (confirm('Bu gönderiyi kalıcı olarak silmek istediğine emin misin?')) {
+            fetch('/Kesfet/PaylasimSil?id=' + id, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Silinemedi.');
+                }
+            });
+        }
+    }
+
+    // Scroll Animasyonu
+    document.addEventListener("DOMContentLoaded", function() {
+        if(window.location.hash) {
+            var hedefId = window.location.hash.substring(1);
+            var element = document.getElementById(hedefId);
+            if(element) {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+                element.style.backgroundColor = "#fff3cd";
+                setTimeout(function() { element.style.backgroundColor = "white"; }, 2000);
+            }
+        }
+    });
+</script>
+
+<style>
+    .post-card:hover {
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important;
+        transition: 0.3s;
+    }
+    /* Diğer stiller aynı... */
+</style>

@@ -1,0 +1,110 @@
+﻿@model KulturAtlasi.Models.AramaViewModel
+
+@{
+    ViewData["Title"] = "Arama Sonuçları";
+}
+
+<div class="container py-4">
+    <h4 class="fw-bold mb-4">
+        <span class="text-primary">"@Model.AramaKelimesi"</span> için sonuçlar:
+    </h4>
+
+    <div class="row">
+
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white fw-bold text-primary"><i class="bi bi-people-fill"></i> Kullanıcılar</div>
+                <div class="list-group list-group-flush">
+                    @if (Model.Kullanicilar.Any())
+                    {
+                        @foreach (var user in Model.Kullanicilar)
+                        {
+                            <a href="/Kullanicilar/Profil/@user.Id" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                                <img src="@(user.ProfilFotografiYolu ?? $"https://ui-avatars.com/api/?name={user.Ad}+{user.Soyad}")" class="rounded-circle" width="40" height="40">
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark">@user.Ad @user.Soyad</h6>
+                                    <small class="text-muted">@@@user.UserName</small>
+                                </div>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted small text-center">Kullanıcı bulunamadı.</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+
+            @if (Model.Kitaplar.Any())
+            {
+                <h6 class="fw-bold text-muted mb-3">📚 Kitaplar</h6>
+                <div class="row g-3 mb-4">
+                    @foreach (var item in Model.Kitaplar)
+                    {
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-3 bg-white p-2 rounded shadow-sm border cursor-pointer h-100" onclick="window.location.href='/Kitaplar/Details/@item.KitapID'">
+                                <img src="@item.KapakResmiYolu" width="50" height="75" class="rounded object-fit-cover">
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 200px;">@item.Baslik</h6>
+                                    <small class="text-muted">@item.Yazar</small><br>
+                                    <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-person"></i> @item.Kullanici.KullaniciAdi</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (Model.Filmler.Any())
+            {
+                <h6 class="fw-bold text-muted mb-3">🎬 Filmler</h6>
+                <div class="row g-3 mb-4">
+                    @foreach (var item in Model.Filmler)
+                    {
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-3 bg-white p-2 rounded shadow-sm border cursor-pointer h-100" onclick="window.location.href='/Filmler/Details/@item.FilmID'">
+                                <img src="@item.PosterYolu" width="50" height="75" class="rounded object-fit-cover">
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 200px;">@item.Baslik</h6>
+                                    <small class="text-muted">@item.Yonetmen</small><br>
+                                    <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-person"></i> @item.Kullanici.KullaniciAdi</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (Model.Diziler.Any())
+            {
+                <h6 class="fw-bold text-muted mb-3">📺 Diziler</h6>
+                <div class="row g-3">
+                    @foreach (var item in Model.Diziler)
+                    {
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-3 bg-white p-2 rounded shadow-sm border cursor-pointer h-100" onclick="window.location.href='/Diziler/Details/@item.DiziID'">
+                                <img src="@item.PosterYolu" width="50" height="75" class="rounded object-fit-cover">
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 200px;">@item.Baslik</h6>
+                                    <small class="text-muted">@item.Yonetmen</small><br>
+                                    <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-person"></i> @item.Kullanici.KullaniciAdi</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (!Model.Kitaplar.Any() && !Model.Filmler.Any() && !Model.Diziler.Any())
+            {
+                <div class="alert alert-light text-center">
+                    İçeriklerde (Kitap, Film, Dizi) eşleşen bir sonuç bulunamadı.
+                </div>
+            }
+
+        </div>
+    </div>
+</div>

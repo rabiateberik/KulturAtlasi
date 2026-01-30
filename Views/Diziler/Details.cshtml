@@ -1,0 +1,231 @@
+﻿@model KulturAtlasi.Models.Dizi
+
+@{
+    ViewData["Title"] = Model.Baslik;
+}
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentUserId = UserManager.GetUserId(User);
+    bool benimPaylasimim = Model.KullaniciID == currentUserId;
+
+    // HATA ÇÖZÜMÜ BURADA: 👇
+    // Durum nesnesi boş gelebilir (null check yaptık)
+    // "Tanimi" senin Durum tablosundaki isim sütunun (Ad, Baslik vs. ise değiştir)
+    string durumMetni = "";
+    if (Model.Durum != null)
+    {
+        durumMetni = Model.Durum.Ad;
+    }
+}
+<div class="container py-5">
+
+    <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 15px;">
+
+        <div class="position-absolute w-100 h-100" style="
+            background-image: url('@(string.IsNullOrEmpty(Model.PosterYolu) ? "https://via.placeholder.com/500" : Model.PosterYolu)');
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) brightness(0.4);
+            z-index: 0;">
+        </div>
+
+        <div class="row g-0 position-relative" style="z-index: 1;">
+
+            <div class="col-md-4 d-flex align-items-center justify-content-center p-4">
+                @if (!string.IsNullOrEmpty(Model.PosterYolu))
+                {
+                    <img src="@Model.PosterYolu" class="img-fluid rounded shadow-lg"
+                         style="max-height: 500px; border: 4px solid rgba(255,255,255,0.2);" alt="@Model.Baslik">
+                }
+                else
+                {
+                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded shadow" style="width: 300px; height: 450px;">
+                        <div class="text-center">
+                            <i class="bi bi-tv fs-1"></i>
+                            <p>Afiş Yok</p>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-8 text-white p-4 p-md-5">
+
+                <div class="mb-3">
+                    <h1 class="fw-bold display-5 text-shadow">
+                        @Model.Baslik
+                        <span class="text-white-50 fw-light">(@Model.BaslangicYili)</span>
+                    </h1>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    @{
+                        var renk = "bg-secondary";
+                        if (Model.Durum?.Ad == "İzledim") renk = "bg-success";
+                        if (Model.Durum?.Ad == "İzliyorum") renk = "bg-primary"; // Mavi
+                        if (Model.Durum?.Ad == "İzleyeceğim") renk = "bg-warning text-dark";
+                        if (Model.Durum?.Ad == "Yarıda Bıraktım") renk = "bg-danger";
+                    }
+                    <span class="badge @renk fs-6 px-3 py-2 rounded-pill shadow-sm">
+                        @Model.Durum?.Ad
+                    </span>
+
+                    <span class="badge bg-light text-dark fs-6 px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-layers-fill"></i> @(Model.SezonSayisi ?? 0) Sezon
+                    </span>
+
+                    <span class="badge bg-dark border border-light bg-opacity-50 fs-6 px-3 py-2 rounded-pill">
+                        <i class="bi bi-collection-play-fill"></i> @(Model.BolumSayisi ?? 0) Bölüm
+                    </span>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="text-white-50 mb-1 small text-uppercase fw-bold">Senin Puanın</h5>
+                    <div class="text-warning fs-4">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= (Model.KullaniciPuani ?? 0))
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star text-white-50"></i>
+                            }
+                        }
+                        <span class="ms-2 text-white small fs-6">(@(Model.KullaniciPuani ?? 0)/5)</span>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <h4 class="border-bottom border-secondary pb-2 mb-3">Konusu</h4>
+                    <p class="lead" style="line-height: 1.8; opacity: 0.9;">
+                        @(string.IsNullOrEmpty(Model.Aciklama) ? "Bu dizi için henüz bir açıklama girilmemiş." : Model.Aciklama)
+                    </p>
+                </div>
+
+                <div class="d-flex gap-3 mt-auto">
+                    <a asp-action="Edit" asp-route-id="@Model.DiziID" class="btn btn-warning fw-bold px-4">
+                        <i class="bi bi-pencil-square"></i> Düzenle
+                    </a>
+                    <a asp-action="Index" class="btn btn-outline-light px-4">
+                        <i class="bi bi-arrow-left"></i> Listeye Dön
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.DiziID" class="btn btn-danger px-3 ms-auto">
+                        <i class="bi bi-trash"></i> Sil
+                    </a>
+                </div>
+                <div class="mt-2">
+                    @if (benimPaylasimim)
+                    {
+                        // Kendi kitabım. Duruma bakıyorum.
+                        // Eğer "Okudum" veya "Okuyorum" statüsündeyse -> BENZERİNİ ÖNER
+                        if (durumMetni == "İzledim" || durumMetni == "İzliyorum")
+                        {
+                            <button onclick="bunaBenzerOner('@Model.Baslik', 'Dizi')" class="btn btn-outline-success rounded-pill btn-sm shadow-sm animate-pulse-hover">
+                                <i class="bi bi-compass"></i> Buna Benzer Ne Var?
+                            </button>
+                        }
+                        else
+                        {
+                            // Listemde ama henüz "Okunacak" durumunda -> İKNA ET
+                            <button onclick="banaBunuSat(@Model.DiziID, 'Dizi')" class="btn btn-outline-primary rounded-pill btn-sm shadow-sm animate-pulse-hover">
+                                <i class="bi bi-gem"></i> Neden İzlemeliyim?
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        // Başkasının kitabı -> İKNA ET
+                        <button onclick="banaBunuSat(@Model.DiziID, 'Kitap')" class="btn btn-outline-primary rounded-pill btn-sm shadow-sm animate-pulse-hover">
+                            <i class="bi bi-gem"></i> Neden İzlemeliyim?
+                        </button>
+                    }
+                </div>
+
+                <div id="aiKutusu" class="alert border-0 shadow-sm mt-3" style="display: none; background-color: #f8f9fa;">
+                    <div class="d-flex gap-3">
+                        <div class="fs-1" id="aiIkon">🤖</div>
+                        <div>
+                            <h6 class="fw-bold mb-1" id="aiBaslik">Asistan Diyor ki:</h6>
+                            <p class="mb-0 small" id="aiMetni">...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end mt-3 text-white-50 small fst-italic">
+                    Kütüphaneye eklenme: @Model.KayitTarihi.ToString("dd MMMM yyyy")
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. FONKSİYON: İKNA ET (Bana Bunu Sat)
+    function banaBunuSat(id, tur) {
+        hazirlikYap('🧙‍♂️', 'alert-info'); // Büyücü ikonu, Mavi renk
+
+        fetch('/Kesfet/BanaBunuSat?id=' + id + '&tur=' + tur)
+            .then(res => res.json())
+            .then(data => sonucGoster(data));
+    }
+
+    // 2. FONKSİYON: KEŞİF (Buna Benzer Öner)
+    function bunaBenzerOner(baslik, tur) {
+        hazirlikYap('🧭', 'alert-success'); // Pusula ikonu, Yeşil renk
+
+        fetch('/Kesfet/BunaBenzerOner?ad=' + baslik + '&tur=' + tur)
+            .then(res => res.json())
+            .then(data => sonucGoster(data));
+    }
+
+    // --- ORTAK YARDIMCI FONKSİYONLAR ---
+
+    function hazirlikYap(ikon, renkSinifi) {
+        var kutu = document.getElementById('aiKutusu');
+        var metin = document.getElementById('aiMetni');
+        var aiIkon = document.getElementById('aiIkon');
+
+        // Kutuyu sıfırla ve göster
+        kutu.className = `alert ${renkSinifi} border-0 shadow-sm mt-3`;
+        kutu.style.display = 'block';
+        aiIkon.innerText = ikon;
+        metin.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Yapay zeka düşünüyor...';
+    }
+
+    function sonucGoster(data) {
+        var metin = document.getElementById('aiMetni');
+        if(data.success) {
+            metin.innerHTML = ""; // Temizle
+            typeWriter(data.text, metin); // Yazdır
+        } else {
+            metin.innerHTML = "Bağlantı hatası.";
+        }
+    }
+
+    // Daktilo Efekti
+    function typeWriter(text, element, i = 0) {
+        if (i < text.length) {
+            // Satır başlarını <br> ile düzeltelim
+            if(text.charAt(i) === '\n') {
+                element.innerHTML += '<br>';
+            } else {
+                element.innerHTML += text.charAt(i);
+            }
+            setTimeout(() => typeWriter(text, element, i + 1), 20);
+        }
+    }
+</script>
+
+
+<style>
+    .text-shadow {
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+
+    .animate-pulse-hover:hover {
+        animation: pulse 1s infinite;
+    }
+</style>

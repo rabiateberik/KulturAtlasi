@@ -1,0 +1,51 @@
+﻿@{
+    ViewData["Title"] = "Hoş Geldiniz";
+}
+
+<div class="container py-5">
+    <div class="row align-items-center g-5 py-5">
+
+        <div class="col-lg-6">
+            <h1 class="display-3 fw-bold lh-1 mb-3 text-primary">KültürAtlası</h1>
+            <p class="lead text-muted mb-4">
+                Kitaplarını, filmlerini, dizilerini ve seyahatlerini tek bir yerde topla.
+                Kendi kültürel hafızanı oluştur ve arkadaşlarınla paylaş.
+            </p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                <a href="/Identity/Account/Login" class="btn btn-primary btn-lg px-4 me-md-2 rounded-pill fw-bold">Giriş Yap</a>
+                <a href="/Identity/Account/Register" class="btn btn-outline-secondary btn-lg px-4 rounded-pill">Kayıt Ol</a>
+            </div>
+        </div>
+
+        <div class="col-lg-6 text-center">
+            <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=800&q=80"
+                 class="d-block mx-lg-auto img-fluid rounded-4 shadow-lg"
+                 alt="Kütüphane Görseli" width="700" height="500" loading="lazy">
+        </div>
+
+    </div>
+
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3 text-center border-top">
+        <div class="col">
+            <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary fs-2 mb-3 rounded-circle" style="width: 60px; height: 60px;">
+                <i class="bi bi-collection"></i>
+            </div>
+            <h3 class="fs-4">Kişisel Arşiv</h3>
+            <p class="text-muted">Okuduğun, izlediğin her şeyi düzenli tut.</p>
+        </div>
+        <div class="col">
+            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success fs-2 mb-3 rounded-circle" style="width: 60px; height: 60px;">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <h3 class="fs-4">Gezgin Ruhu</h3>
+            <p class="text-muted">Gezdiğin yerleri haritada işaretle ve anılarını sakla.</p>
+        </div>
+        <div class="col">
+            <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-dark fs-2 mb-3 rounded-circle" style="width: 60px; height: 60px;">
+                <i class="bi bi-people"></i>
+            </div>
+            <h3 class="fs-4">Sosyal Ağ</h3>
+            <p class="text-muted">Arkadaşlarını takip et, neler yaptıklarını keşfet.</p>
+        </div>
+    </div>
+</div>

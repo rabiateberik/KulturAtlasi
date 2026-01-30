@@ -1,0 +1,227 @@
+﻿@model KulturAtlasi.Models.Seyahat
+
+@{
+    ViewData["Title"] = "Rotayı Düzenle";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+<div class="container py-4">
+    <div class="row">
+
+        <div class="col-md-7 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-geo-alt"></i> Konumu Güncelle</h5>
+                    <small class="text-dark-50">Pin'i sürükleyerek konumu değiştirebilirsin</small>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height: 600px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow border-0">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold text-warning">Seyahat Detayları</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <input type="hidden" asp-for="SeyahatID" />
+                        <input type="hidden" asp-for="KullaniciID" />
+                        <input type="hidden" asp-for="ResimYolu" /> <input type="hidden" asp-for="Enlem" id="inputEnlem" />
+                        <input type="hidden" asp-for="Boylam" id="inputBoylam" />
+
+                        <div class="mb-3">
+                            <label asp-for="Baslik" class="form-label fw-bold">Başlık</label>
+                            <input asp-for="Baslik" class="form-control" />
+                            <span asp-validation-for="Baslik" class="text-danger"></span>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Sehir" class="form-control fw-bold text-primary" id="inputSehir" placeholder="Şehir" />
+                                    <label asp-for="Sehir">Şehir</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Ulke" class="form-control fw-bold text-primary" id="inputUlke" placeholder="Ülke" />
+                                    <label asp-for="Ulke">Ülke</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Tur" class="form-label fw-bold">Tür</label>
+                                <select asp-for="Tur" class="form-select">
+                                    <option value="Şehir Gezisi">🏙️ Şehir Gezisi</option>
+                                    <option value="Müze / Tarih">🏛️ Müze / Tarih</option>
+                                    <option value="Doğa / Kamp">🌲 Doğa / Kamp</option>
+                                    <option value="Deniz Tatili">🏖️ Deniz Tatili</option>
+                                    <option value="Yeme İçme">🍽️ Yeme İçme</option>
+                                    <option value="Diğer">📍 Diğer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ZiyaretTarihi" class="form-label fw-bold">Tarih</label>
+                                <input asp-for="ZiyaretTarihi" type="date" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold bg-warning bg-opacity-10 px-2 rounded">Durumu</label>
+                            <select asp-for="DurumID" class="form-select" asp-items="ViewBag.DurumID"></select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GeziNotu" class="form-label">Notlar</label>
+                            <textarea asp-for="GeziNotu" class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <div class="mb-3 border rounded p-3 bg-light">
+                            <label class="form-label fw-bold">Gezi Fotoğrafı</label>
+
+                            <div class="text-center mb-2">
+                                <img id="imgMevcut" src="@(Model.ResimYolu ?? "https://via.placeholder.com/400x300")"
+                                     class="img-fluid rounded shadow-sm" style="max-height: 200px;">
+                            </div>
+
+                            <input type="file" name="resimDosyasi" class="form-control mt-2" accept="image/*" onchange="onizlemeGoster(this)">
+                            <div class="form-text text-muted small">Yeni dosya seçerseniz mevcut resim değişir.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning fw-bold btn-lg">
+                                <i class="bi bi-check-lg"></i> Güncelle
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <script>
+        // 1. Veritabanından gelen koordinatları al
+        var lat = @(Model.Enlem != 0 ? Model.Enlem.ToString().Replace(",", ".") : "39.0");
+        var lng = @(Model.Boylam != 0 ? Model.Boylam.ToString().Replace(",", ".") : "35.0");
+        var zoom = @(Model.Enlem != 0 ? "13" : "5");
+
+        // 2. Haritayı Başlat
+        var map = L.map('map').setView([lat, lng], zoom);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // 3. Mevcut Konuma Marker Koy (Sürüklenebilir)
+        var currentMarker = L.marker([lat, lng], {draggable: true}).addTo(map)
+            .bindPopup("Konumu değiştirmek için sürükleyin")
+            .openPopup();
+
+        // 4. Marker Sürüklenince Inputları Güncelle
+        currentMarker.on('dragend', function(e) {
+            var position = currentMarker.getLatLng();
+            konumGuncelle(position.lat, position.lng);
+        });
+
+        // 5. Haritaya Tıklayınca Markerı Oraya Taşı
+        map.on('click', function(e) {
+            currentMarker.setLatLng(e.latlng);
+            konumGuncelle(e.latlng.lat, e.latlng.lng);
+        });
+
+        // 6. Arama Kutusu (Geocoder)
+        L.Control.geocoder({
+            defaultMarkGeocode: false,
+            placeholder: "Yer ara..."
+        })
+        .on('markgeocode', function(e) {
+            var center = e.geocode.center;
+            map.setView(center, 13);
+            currentMarker.setLatLng(center);
+            konumGuncelle(center.lat, center.lng);
+        })
+        .addTo(map);
+
+        function konumGuncelle(lat, lng) {
+            document.getElementById("inputEnlem").value = lat;
+            document.getElementById("inputBoylam").value = lng;
+
+            // Kullanıcıya bilgi ver (Yükleniyor...)
+            document.getElementById("inputSehir").placeholder = "Aranıyor...";
+
+            // Adres Çözümleme (Reverse Geocoding)
+            // ÖNEMLİ: zoom=10 parametresi ekledik. Bu, Ege bölgesi gibi karışık yerlerde
+            // sokağa değil genel şehre odaklanmasını sağlar.
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.address) {
+                        console.log("📍 Edit Gelen Veri:", data.address);
+
+                        var addr = data.address;
+                        var sehir = "";
+
+                        // 🔍 GELİŞMİŞ EGE/TÜRKİYE FİKSİ 🔍
+                        // 1. TUR: İl Bulma (Muğla bazen state içinde gelir)
+                        if (addr.province) sehir = addr.province;
+                        else if (addr.state) sehir = addr.state;
+                        else if (addr.city) sehir = addr.city;
+                        else if (addr.region) sehir = addr.region;
+
+                        // 2. TUR: İlçe Bulma (Bodrum, Çeşme vs.)
+                        if (!sehir) {
+                             sehir = addr.town || addr.district || addr.county || addr.municipality;
+                        }
+
+                        // 3. TUR: Hiçbiri yoksa
+                        if (!sehir) {
+                             sehir = "Bilinmiyor";
+                        }
+
+                        var ulke = addr.country;
+
+                        document.getElementById("inputSehir").value = sehir;
+                        document.getElementById("inputUlke").value = ulke || "";
+                        document.getElementById("inputSehir").placeholder = "Şehir";
+
+                        // Marker Popup güncelle
+                        currentMarker.setPopupContent(`<b>${sehir}</b><br>${ulke || ""}`).openPopup();
+                    }
+                })
+                .catch(error => {
+                    console.error('Adres bulunamadı:', error);
+                    document.getElementById("inputSehir").placeholder = "Şehir (Elle giriniz)";
+                });
+        }
+
+        function onizlemeGoster(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imgMevcut').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

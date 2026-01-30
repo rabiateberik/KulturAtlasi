@@ -1,0 +1,120 @@
+﻿@model IEnumerable<KulturAtlasi.Models.Kitap>
+
+@{
+    ViewData["Title"] = "Kitaplığım";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-collection"></i> Kitaplığım</h2>
+    <a asp-action="Create" class="btn btn-primary rounded-pill px-4">
+        <i class="bi bi-plus-lg"></i> Yeni Kitap Ekle
+    </a>
+</div>
+
+<div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm kitap-karti">
+
+                <div class="position-relative" style="height: 300px; overflow: hidden; border-radius: 10px;">
+                    @if (!string.IsNullOrEmpty(item.KapakResmiYolu))
+                    {
+                        <img src="@item.KapakResmiYolu" class="card-img-top h-100 w-100" style="object-fit: cover;"
+                             alt="@item.Baslik"
+                             onerror="this.src='https://placehold.co/300x450?text=Resim+Yok'">
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center h-100 bg-secondary bg-opacity-10 text-muted">
+                            <div class="text-center">
+                                <i class="bi bi-book fs-1"></i>
+                                <p class="small mt-2">Resim Yok</p>
+                            </div>
+                        </div>
+                    }
+
+                    <span class="position-absolute top-0 end-0 badge rounded-pill m-2 @GetDurumRenk(item.Durum?.Ad)">
+                        @item.Durum?.Ad
+                    </span>
+                </div>
+
+                <div class="card-body p-2 text-center">
+                    <h6 class="card-title fw-bold text-truncate mb-0" title="@item.Baslik">
+                        @item.Baslik
+                    </h6>
+
+                    @if (!string.IsNullOrEmpty(item.Tur))
+                    {
+                        <small class="d-block text-primary text-truncate mb-1" style="font-size: 0.75rem;">
+                            @item.Tur
+                        </small>
+                    }
+                    <p class="card-text text-muted small mb-2">
+                        @item.Yazar
+                    </p>
+
+                    <div class="text-warning small mb-2">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            if (i < (item.KullaniciPuani ?? 0)) // Puan kadar dolu yıldız
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            else // Geri kalanı boş yıldız
+                            {
+                                <i class="bi bi-star"></i>
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 d-flex justify-content-center gap-2 pb-3">
+                    <a asp-action="Edit" asp-route-id="@item.KitapID" class="btn btn-sm btn-outline-secondary rounded-circle" title="Düzenle">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a asp-action="Details" asp-route-id="@item.KitapID" class="btn btn-sm btn-outline-primary rounded-circle" title="Detaylar">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@item.KitapID" class="btn btn-sm btn-outline-danger rounded-circle" title="Sil">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <div class="mb-3">
+            <i class="bi bi-emoji-frown fs-1 text-muted"></i>
+        </div>
+        <h4 class="text-muted">Henüz bu rafta hiç kitap yok.</h4>
+        <p>Hemen yeni bir tane ekleyerek kütüphaneni oluşturmaya başla!</p>
+    </div>
+}
+
+@functions {
+    public string GetDurumRenk(string durum)
+    {
+        return durum switch
+        {
+            "Okudum" => "bg-success", // Yeşil
+            "Okuyacağım" => "bg-primary", // Mavi
+            "Yarıda Bıraktım" => "bg-danger", // Kırmızı
+            _ => "bg-secondary" // Gri (Diğerleri)
+        };
+    }
+}
+
+<style>
+    .kitap-karti {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+    }
+
+        .kitap-karti:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+        }
+</style>

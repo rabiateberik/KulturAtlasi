@@ -1,0 +1,224 @@
+﻿@model KulturAtlasi.Models.Seyahat
+
+@{
+    ViewData["Title"] = "Yeni Rota Ekle";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+<div class="container py-4">
+    <div class="row">
+
+        <div class="col-md-7 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-map-fill"></i> Konum Seç</h5>
+                    <small class="text-white-50">Haritadan bir yer seçin</small>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height: 600px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow border-0">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold text-success">Seyahat Detayları</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <input type="hidden" asp-for="Enlem" id="inputEnlem" />
+                        <input type="hidden" asp-for="Boylam" id="inputBoylam" />
+
+                        <div class="mb-3">
+                            <label asp-for="Baslik" class="form-label fw-bold">Başlık</label>
+                            <input asp-for="Baslik" class="form-control" placeholder="Örn: Roma Tatili" />
+                            <span asp-validation-for="Baslik" class="text-danger"></span>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Sehir" class="form-control fw-bold text-primary" id="inputSehir" placeholder="Şehir" />
+                                    <label asp-for="Sehir">Şehir</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Ulke" class="form-control fw-bold text-primary" id="inputUlke" placeholder="Ülke" />
+                                    <label asp-for="Ulke">Ülke</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Tur" class="form-label fw-bold">Tür</label>
+                                <select asp-for="Tur" class="form-select">
+                                    <option value="Şehir Gezisi">🏙️ Şehir Gezisi</option>
+                                    <option value="Müze / Tarih">🏛️ Müze / Tarih</option>
+                                    <option value="Doğa / Kamp">🌲 Doğa / Kamp</option>
+                                    <option value="Deniz Tatili">🏖️ Deniz Tatili</option>
+                                    <option value="Yeme İçme">🍽️ Yeme İçme</option>
+                                    <option value="Diğer">📍 Diğer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ZiyaretTarihi" class="form-label fw-bold">Tarih</label>
+                                <input asp-for="ZiyaretTarihi" type="date" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold bg-warning bg-opacity-10 px-2 rounded">Durumu</label>
+                            <select asp-for="DurumID" class="form-select" asp-items="ViewBag.DurumID"></select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GeziNotu" class="form-label">Notlar</label>
+                            <textarea asp-for="GeziNotu" class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <div class="mb-3 border rounded p-3 bg-light">
+                            <label class="form-label fw-bold">Gezi Fotoğrafı</label>
+                            <input type="file" name="resimDosyasi" class="form-control" accept="image/*" onchange="onizlemeGoster(this)">
+
+                            <div class="form-text text-muted small mt-1">
+                                <i class="bi bi-magic"></i> Fotoğraf seçmezseniz, şehir ismine göre otomatik bulunacaktır.
+                            </div>
+
+                            <div class="mt-2 text-center" id="divResimOnizleme" style="display:none;">
+                                <img id="imgUploadOnizleme" src="#" class="img-fluid rounded shadow-sm" style="max-height: 200px;">
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-geo-alt-fill"></i> Rotayı Kaydet
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <script>
+        var map = L.map('map').setView([39.0, 35.0], 5);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        var currentMarker = null;
+
+        var geocoder = L.Control.geocoder({
+            defaultMarkGeocode: false,
+            placeholder: "Yer ara..."
+        })
+        .on('markgeocode', function(e) {
+            var center = e.geocode.center;
+            map.fitBounds(e.geocode.bbox);
+            konumIsaretle(center.lat, center.lng);
+        })
+        .addTo(map);
+
+        map.on('click', function(e) {
+            konumIsaretle(e.latlng.lat, e.latlng.lng);
+        });
+
+        function konumIsaretle(lat, lng) {
+            if (currentMarker) { map.removeLayer(currentMarker); }
+
+            currentMarker = L.marker([lat, lng]).addTo(map)
+                .bindPopup('<span class="text-success fw-bold">Konum Seçildi!</span><br>Adres alınıyor...')
+                .openPopup();
+
+            document.getElementById("inputEnlem").value = lat;
+            document.getElementById("inputBoylam").value = lng;
+
+            adresBul(lat, lng);
+        }
+
+        async function adresBul(lat, lng) {
+             // Önce kutuları temizle
+             document.getElementById("inputSehir").value = "...";
+             document.getElementById("inputUlke").value = "...";
+
+             try {
+                 
+                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
+                 const data = await response.json();
+
+                 if (data && data.address) {
+                     console.log("📍 Gelen Adres Verisi:", data.address); 
+
+                     var addr = data.address;
+                     var sehir = "";
+
+                     // 🔍 EGE BÖLGESİ ÖZEL ARAMA MANTIĞI 🔍
+
+                     // 1. TUR: Kesin İl Adı Ara (Muğla, İzmir, Aydın...)
+                     // Ege'de bazen il bilgisi 'state' içinde geliyor.
+                     if (addr.province) sehir = addr.province;
+                     else if (addr.state) sehir = addr.state;
+                     else if (addr.city) sehir = addr.city;
+                     else if (addr.region) sehir = addr.region;
+
+                     // 2. TUR: Hâlâ boşsa, turistik ilçeleri (Bodrum, Çeşme vs.) ana yer olarak kabul et
+                     if (!sehir) {
+                         sehir = addr.town || addr.district || addr.county || addr.municipality;
+                     }
+
+                     // 3. TUR: Hiçbir şey yoksa "Bilinmeyen Konum" yazmasın, Köy/Mahalle adını al
+                     if (!sehir) {
+                         sehir = addr.village || addr.suburb || addr.hamlet || "Bilinmiyor";
+                     }
+
+                     // Bazen OSM "Muğla ili" gibi fazladan kelimeler ekler, onları temizleyelim (Opsiyonel)
+                     // sehir = sehir.replace(" ili", "").replace(" Valiliği", "");
+
+                     var ulke = addr.country;
+
+                     // Inputlara Yaz
+                     document.getElementById("inputSehir").value = sehir;
+                     document.getElementById("inputUlke").value = ulke || "";
+
+                     // Harita Baloncuğunu Güncelle
+                     if(typeof currentMarker !== 'undefined' && currentMarker) {
+                         currentMarker.setPopupContent(`<b>${sehir}</b><br>${ulke || ""}`);
+                     }
+                 }
+             } catch (error) {
+                 console.error("Hata:", error);
+                 document.getElementById("inputSehir").value = "Hata oluştu";
+             }
+         }
+
+        // FOTOĞRAF ÖNİZLEME FONKSİYONU
+        function onizlemeGoster(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imgUploadOnizleme').src = e.target.result;
+                    document.getElementById('divResimOnizleme').style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

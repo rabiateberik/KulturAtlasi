@@ -1,0 +1,230 @@
+﻿@model KulturAtlasi.Models.Dizi
+
+@{
+    ViewData["Title"] = "Yeni Dizi Ekle";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 mb-3 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-3"><i class="bi bi-tv"></i> Dizi Ara (TMDb)</h5>
+                    <div class="input-group">
+                        <input type="text" id="txtDiziAra" class="form-control" placeholder="Dizi adı (Örn: Breaking Bad)...">
+                        <button class="btn btn-warning text-dark fw-bold" type="button" onclick="diziAra()">Bul</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sonucListesi" class="list-group mb-4 shadow-sm" style="display:none; max-height: 400px; overflow-y: auto;"></div>
+
+            <div class="card shadow border-0 text-center p-3" id="onizlemeKarti" style="display:none;">
+                <span class="badge bg-success position-absolute top-0 end-0 m-2">Seçildi <i class="bi bi-check"></i></span>
+                <img id="imgOnizleme" src="" class="img-fluid rounded mx-auto d-block shadow-sm" style="max-height: 400px;" alt="Afiş">
+
+                <div class="mt-3">
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="txtManuelPoster" class="form-control" placeholder="Manuel resim linki..." onchange="manuelPosterGuncelle()">
+                        <button class="btn btn-outline-secondary" type="button" onclick="manuelPosterGuncelle()">Güncelle</button>
+                    </div>
+                </div>
+
+                <h5 id="lblBaslik" class="fw-bold mt-3 text-dark"></h5>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card shadow border-0">
+                <div class="card-header bg-warning text-dark py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-collection-play"></i> Dizi Bilgileri</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="PosterYolu" id="inputPoster" />
+
+                        <div class="mb-3">
+                            <label asp-for="Baslik" class="form-label fw-bold">Dizi Adı</label>
+                            <input asp-for="Baslik" class="form-control" id="inputBaslik" />
+                            <span asp-validation-for="Baslik" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Tur" class="form-label fw-bold text-primary">Türü (Otomatik)</label>
+                            <input asp-for="Tur" class="form-control bg-light" id="inputTur" readonly />
+                            <span asp-validation-for="Tur" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Yonetmen" class="form-label fw-bold">Yapımcı / Yaratıcı</label>
+                            <input asp-for="Yonetmen" class="form-control" id="inputYonetmen" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="BaslangicYili" class="form-label">Başlangıç Yılı</label>
+                                <input asp-for="BaslangicYili" class="form-control" id="inputYil" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="SezonSayisi" class="form-label fw-bold text-primary">Sezon</label>
+                                <input asp-for="SezonSayisi" class="form-control fw-bold" id="inputSezon" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="BolumSayisi" class="form-label fw-bold text-primary">Bölüm</label>
+                                <input asp-for="BolumSayisi" class="form-control fw-bold" id="inputBolum" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Durumu</label>
+                                <select asp-for="DurumID" class="form-select" asp-items="ViewBag.DurumID"></select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="KullaniciPuani" class="form-label">Puanım (1-5)</label>
+                                <input asp-for="KullaniciPuani" type="number" min="1" max="5" class="form-control" value="0" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Aciklama" class="form-label">Konusu</label>
+                            <textarea asp-for="Aciklama" class="form-control" id="inputAciklama" rows="4"></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">Arşive Ekle</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const API_KEY = '1925367f1f6c80d5dbb758ebb0339e3c';
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
+
+        async function diziAra() {
+            var sorgu = document.getElementById("txtDiziAra").value;
+            if (!sorgu) { alert("Dizi adı yazın!"); return; }
+
+            var btn = event.target;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${BASE_URL}/search/tv?api_key=${API_KEY}&query=${sorgu}&language=tr-TR`);
+                const data = await res.json();
+
+                if (data.results && data.results.length > 0) {
+                    listeyiDoldur(data.results);
+                } else {
+                    alert("Dizi bulunamadı!");
+                    document.getElementById("sonucListesi").style.display = "none";
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Hata oluştu.");
+            } finally {
+                btn.innerHTML = "Bul";
+                btn.disabled = false;
+            }
+        }
+
+        function listeyiDoldur(diziler) {
+            var liste = document.getElementById("sonucListesi");
+            liste.innerHTML = "";
+            liste.style.display = "block";
+
+            diziler.slice(0, 5).forEach(dizi => {
+                var poster = dizi.poster_path ? IMAGE_URL + dizi.poster_path : "https://via.placeholder.com/50x75?text=Yok";
+                var yil = dizi.first_air_date ? dizi.first_air_date.split('-')[0] : "Tarih Yok";
+
+                var html = `
+                    <button type="button" class="list-group-item list-group-item-action d-flex gap-3 py-2" onclick="diziDetayGetir(${dizi.id})">
+                        <img src="${poster}" width="40" height="60" class="flex-shrink-0 rounded border">
+                        <div class="d-flex gap-2 w-100 justify-content-between">
+                            <div>
+                                <h6 class="mb-0 fw-bold">${dizi.name}</h6>
+                                <p class="mb-0 opacity-75 small text-truncate" style="max-width: 200px;">${dizi.original_name}</p>
+                            </div>
+                            <small class="opacity-50 text-nowrap fw-bold">${yil}</small>
+                        </div>
+                    </button>
+                `;
+                liste.innerHTML += html;
+            });
+        }
+
+        async function diziDetayGetir(diziId) {
+            try {
+                const res = await fetch(`${BASE_URL}/tv/${diziId}?api_key=${API_KEY}&language=tr-TR`);
+                const dizi = await res.json();
+
+                document.getElementById("inputBaslik").value = dizi.name;
+                document.getElementById("inputYil").value = dizi.first_air_date ? dizi.first_air_date.split('-')[0] : "";
+                document.getElementById("inputAciklama").value = dizi.overview;
+                document.getElementById("inputSezon").value = dizi.number_of_seasons || 0;
+                document.getElementById("inputBolum").value = dizi.number_of_episodes || 0;
+
+                // ✨ 2. EKLEME BURASI: TÜR ÇEKME KODU ✨
+                var turler = "";
+                if (dizi.genres && dizi.genres.length > 0) {
+                    turler = dizi.genres.map(g => g.name).join(", ");
+                }
+                document.getElementById("inputTur").value = turler;
+                // ✨ 2. EKLEME BİTTİ ✨
+
+                // Ekstra: Yönetmen / Yapımcı bilgisini de çekelim (Created By)
+                var yaratici = "";
+                if (dizi.created_by && dizi.created_by.length > 0) {
+                    yaratici = dizi.created_by.map(c => c.name).join(", ");
+                }
+                document.getElementById("inputYonetmen").value = yaratici;
+
+
+                var posterUrl = "";
+                if (dizi.poster_path) {
+                    posterUrl = IMAGE_URL + dizi.poster_path;
+                }
+
+                posterGuncelle(posterUrl);
+                document.getElementById("lblBaslik").innerText = dizi.name;
+                document.getElementById("sonucListesi").style.display = "none";
+
+            } catch (err) {
+                console.error(err);
+                alert("Detaylar alınamadı.");
+            }
+        }
+
+        function manuelPosterGuncelle() {
+            var url = document.getElementById("txtManuelPoster").value;
+            if(url) posterGuncelle(url);
+        }
+
+        function posterGuncelle(url) {
+            var img = document.getElementById("imgOnizleme");
+            var hiddenInput = document.getElementById("inputPoster");
+            var placeholder = "https://via.placeholder.com/300x450?text=Afiş+Yok";
+            var finalUrl = url ? url : placeholder;
+
+            document.getElementById("onizlemeKarti").style.display = "block";
+            img.src = finalUrl;
+            hiddenInput.value = finalUrl;
+            document.getElementById("txtManuelPoster").value = url;
+
+            img.onerror = function() {
+                this.src = placeholder;
+            }
+        }
+    </script>
+}

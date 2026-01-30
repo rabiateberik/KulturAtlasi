@@ -1,0 +1,94 @@
+﻿@model IEnumerable<KulturAtlasi.ViewModels.AdminYorumViewModel>
+
+@{
+    ViewData["Title"] = "Yorum Yönetimi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0"><i class="bi bi-chat-quote-fill text-primary"></i> Yorum Denetimi</h3>
+            <p class="text-muted small">Kullanıcıların paylaşımlara yaptığı yorumlar.</p>
+        </div>
+        <div class="badge bg-primary fs-6 rounded-pill">
+            Toplam: @Model.Count()
+        </div>
+    </div>
+
+    @if (TempData["Mesaj"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Mesaj"]
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Yorum Yapan</th>
+                        <th>Yorum İçeriği</th>
+                        <th>Hangi Paylaşıma?</th>
+                        <th class="text-end pe-4">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4" style="min-width: 150px;">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width:35px; height:35px; font-weight:bold;">
+                                        @item.KullaniciAdi?.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold small">@item.KullaniciAdi</span>
+                                        <span class="text-muted" style="font-size: 10px;">@item.Tarih.ToString("dd.MM.yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td style="max-width: 350px;">
+                                <div class="p-2 bg-light rounded border text-secondary small fst-italic">
+                                    "@item.YorumIcerik"
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="badge bg-secondary bg-opacity-10 text-dark w-auto mb-1" style="font-size:10px;">@item.PaylasimTuru</span>
+                                    <span class="text-dark small fw-bold">"@item.PaylasimIcerik"</span>
+                                </div>
+                            </td>
+
+                            <td class="text-end pe-4">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a href="/Paylasimlar/Details/@item.PaylasimID" target="_blank" class="btn btn-sm btn-light border" title="Paylaşımı Gör">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                    </a>
+
+                                    <form asp-action="YorumSil" method="post" onsubmit="return confirm('Bu yorumu silmek istediğine emin misin?');">
+                                        <input type="hidden" name="id" value="@item.YorumID" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger shadow-sm">
+                                            <i class="bi bi-trash-fill"></i> Sil
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                Henüz hiç yorum yok.
+            </div>
+        }
+    </div>
+</div>

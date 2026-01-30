@@ -1,0 +1,68 @@
+﻿@model KulturAtlasi.Models.Iletisim
+@{
+    ViewData["Title"] = "İletişim";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="row g-0">
+                    <div class="col-md-5 bg-primary text-white p-5 d-flex flex-column justify-content-center">
+                        <h3 class="fw-bold mb-4">Bize Ulaşın</h3>
+                        <p class="opacity-75 mb-4">Önerileriniz, şikayetleriniz veya sadece merhaba demek için bize yazabilirsiniz.</p>
+
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-geo-alt-fill fs-4 me-3"></i>
+                            <span>İstanbul, Türkiye</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-envelope-fill fs-4 me-3"></i>
+                            <span>info@kulturatlasi.com</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-7 p-5 bg-white">
+
+                        @if (TempData["Basarili"] != null)
+                        {
+                            <div class="alert alert-success border-0 shadow-sm mb-4">
+                                <i class="bi bi-check-circle-fill me-2"></i> @TempData["Basarili"]
+                            </div>
+                        }
+
+                        <form asp-action="Iletisim" method="post">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Ad Soyad</label>
+                                <input asp-for="AdSoyad" class="form-control bg-light border-0 py-2" placeholder="Adınız">
+                                <span asp-validation-for="AdSoyad" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Email Adresi</label>
+                                <input asp-for="Email" type="email" class="form-control bg-light border-0 py-2" placeholder="ornek@mail.com">
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Konu</label>
+                                <input asp-for="Konu" class="form-control bg-light border-0 py-2" placeholder="Mesajınız ne hakkında?">
+                                <span asp-validation-for="Konu" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold">Mesajınız</label>
+                                <textarea asp-for="Mesaj" class="form-control bg-light border-0" rows="4" placeholder="Bize ne söylemek istersiniz?"></textarea>
+                                <span asp-validation-for="Mesaj" class="text-danger small"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm">
+                                <i class="bi bi-send-fill me-2"></i> Gönder
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

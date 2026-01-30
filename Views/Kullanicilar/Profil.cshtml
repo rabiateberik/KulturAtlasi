@@ -1,0 +1,299 @@
+﻿@model KulturAtlasi.Models.ProfilViewModel
+
+@{
+    ViewData["Title"] = Model.AdSoyad;
+}
+
+<div class="container py-5">
+    @* --- PROFİL KARTI --- *@
+    <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+        <div style="height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+        <div class="card-body text-center" style="margin-top: -60px;">
+            <div class="d-inline-block p-1 bg-white rounded-circle shadow position-relative">
+                <img src="@(Model.ProfilResmi ?? $"https://ui-avatars.com/api/?name={Model.AdSoyad}&background=random&size=128")"
+                     class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+            </div>
+            <h2 class="fw-bold mt-3 mb-0">@Model.AdSoyad</h2>
+            <p class="text-muted fs-5 mb-2">@@@Model.KullaniciAdi</p>
+
+            @if (!string.IsNullOrEmpty(Model.Biyografi))
+            {
+                <p class="text-secondary mx-auto mb-4 small" style="max-width: 500px;">
+                    <i class="bi bi-quote opacity-50"></i> @Model.Biyografi
+                </p>
+            }
+
+            <div class="d-flex justify-content-center gap-4 mb-4 text-center">
+                <div>
+                    <h5 class="fw-bold mb-0">@Model.ToplamPaylasim</h5>
+                    <small class="text-muted" style="font-size: 0.8rem;">Gönderi</small>
+                </div>
+                <div onclick="listeAc('Takipciler', '@Model.KullaniciID')" class="cursor-pointer hover-scale">
+                    <h5 class="fw-bold mb-0">@Model.TakipciSayisi</h5>
+                    <small class="text-muted" style="font-size: 0.8rem;">Takipçi</small>
+                </div>
+                <div onclick="listeAc('Kitap', '@Model.KullaniciID')" class="cursor-pointer hover-scale">
+                    <h5 class="fw-bold mb-0">@Model.OkunanKitap</h5>
+                    <small class="text-muted" style="font-size: 0.8rem;">Kitap</small>
+                </div>
+                <div onclick="listeAc('Film', '@Model.KullaniciID')" class="cursor-pointer hover-scale">
+                    <h5 class="fw-bold mb-0">@Model.IzlenenFilm</h5>
+                    <small class="text-muted" style="font-size: 0.8rem;">Film</small>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-2">
+                @if (Model.KendiProfilimMi)
+                {
+                    <button onclick="profilDuzenleModalAc()" class="btn btn-outline-dark px-4 rounded-pill">
+                        <i class="bi bi-pencil-square"></i> Profili Düzenle
+                    </button>
+                    <button onclick="analizBaslat()" class="btn btn-warning text-white px-4 rounded-pill shadow-sm ms-2">
+                        <i class="bi bi-magic"></i> AI Analizi
+                    </button>
+                }
+                else
+                {
+                    @if (Model.TakipEdiyorMuyum)
+                    {
+                        <form asp-action="TakibiBirak" method="post">
+                            <input type="hidden" name="id" value="@Model.KullaniciID" />
+                            <button type="submit" class="btn btn-secondary px-4 rounded-pill">
+                                <i class="bi bi-person-check-fill"></i> Takip Ediliyor
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="TakipEt" method="post">
+                            <input type="hidden" name="id" value="@Model.KullaniciID" />
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill">
+                                <i class="bi bi-person-plus-fill"></i> Takip Et
+                            </button>
+                        </form>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @* --- SOL TARAF: GRAFİK --- *@
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-0 fw-bold text-muted small">
+                    <i class="bi bi-pie-chart-fill text-primary"></i> İlgi Alanları
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="height: 250px;">
+                    <canvas id="turGrafigi"></canvas>
+                </div>
+            </div>
+        </div>
+
+        @* --- SAĞ TARAF: PAYLAŞIMLAR --- *@
+        <div class="col-md-8">
+            <h5 class="fw-bold mb-3 ps-2 border-start border-4 border-primary">Paylaşımlar</h5>
+
+            @if (Model.Paylasimlar != null && Model.Paylasimlar.Any())
+            {
+                @foreach (var post in Model.Paylasimlar)
+                {
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body p-3">
+                            <div class="d-flex gap-3">
+                                <img src="@(post.ProfilResmi ?? $"https://ui-avatars.com/api/?name={post.AdSoyad}&background=random")"
+                                     class="rounded-circle border" width="50" height="50" style="object-fit: cover;">
+
+                                <div class="w-100">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="fw-bold text-dark">@post.AdSoyad</span>
+                                            <span class="text-muted small ms-1">@Html.Raw(post.Eylem)</span>
+                                            <div class="text-muted" style="font-size:0.8rem;">@post.ZamanGecenSure</div>
+                                        </div>
+
+                                        @if (Model.KendiProfilimMi)
+                                        {
+                                            <div class="dropdown">
+                                                <button class="btn btn-link text-muted p-0 text-decoration-none" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                                                    <li>
+                                                        <button class="dropdown-item" onclick="modalAc(@post.PaylasimID)">
+                                                            <i class="bi bi-pencil me-2 text-warning"></i> Düzenle
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item text-danger" onclick="paylasimSil(@post.PaylasimID)">
+                                                            <i class="bi bi-trash me-2"></i> Sil
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(post.YorumMetni))
+                                    {
+                                        <p class="mt-2 text-dark mb-2">@post.YorumMetni</p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(post.IcerikTuru) && post.IcerikTuru != "Düşünce")
+                                    {
+                                        string displayImg = !string.IsNullOrEmpty(post.IcerikResim) ? post.IcerikResim : "https://placehold.co/100x150?text=Eser";
+                                        string link = $"/{(post.IcerikTuru == "Kitap" ? "Kitaplar" : (post.IcerikTuru == "Film" ? "Filmler" : "Diziler"))}/Details/{post.IcerikId}";
+
+                                        <div class="d-flex gap-3 mt-3 p-2 bg-light rounded align-items-center border cursor-pointer hover-bg-gray"
+                                             onclick="window.location.href='@link'">
+                                            <img src="@displayImg" width="50" height="75" class="rounded object-fit-cover shadow-sm" onerror="this.src='https://placehold.co/100x150?text=Hata'">
+                                            <div>
+                                                <span class="badge bg-white text-dark border mb-1" style="font-size:0.7rem;">@post.IcerikTuru</span>
+                                                <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 200px;">@post.IcerikBaslik</h6>
+                                            </div>
+                                            <div class="ms-auto text-muted pe-2"><i class="bi bi-chevron-right"></i></div>
+                                        </div>
+                                    }
+
+                                    @* SOSYAL ETKİLEŞİM BUTONLARI *@
+                                    <div class="d-flex gap-4 mt-3 pt-3 border-top text-muted">
+                                        <span class="cursor-pointer hover-scale" onclick="begenenleriGoster(@post.PaylasimID)">
+                                            <i class="bi bi-heart-fill text-danger"></i> @post.BegeniSayisi
+                                        </span>
+                                        <span class="cursor-pointer hover-scale" onclick="yorumlariGoster(@post.PaylasimID)">
+                                            <i class="bi bi-chat"></i> @post.YorumSayisi
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5 bg-light rounded-3">
+                    <i class="bi bi-camera fs-1 text-muted opacity-50"></i>
+                    <p class="text-muted mt-2">Henüz paylaşım yapılmamış.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* --- MODALLAR --- *@
+<div class="modal fade" id="profilDuzenleModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow" id="modalIcerik"></div></div></div>
+<div class="modal fade" id="listeModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content rounded-4 shadow" id="listeModalIcerik"></div></div></div>
+<div class="modal fade" id="profilAyarlariModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow" id="profilAyarlariIcerik"></div></div></div>
+<div class="modal fade" id="analizModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow border-0" id="analizModalIcerik"></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // 📊 1. GRAFİK
+    document.addEventListener("DOMContentLoaded", function() {
+        var kitapSayisi = @Model.OkunanKitap;
+        var filmSayisi = @Model.IzlenenFilm;
+        if((kitapSayisi + filmSayisi) > 0) {
+            var ctxElement = document.getElementById('turGrafigi');
+            if (ctxElement) {
+                var ctx1 = ctxElement.getContext('2d');
+                new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Kitap', 'Film'],
+                        datasets: [{ data: [kitapSayisi, filmSayisi], backgroundColor: ['#36A2EB', '#FF6384'], hoverOffset: 4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+        }
+    });
+
+    // 🛠️ 2. YARDIMCI FONKSİYONLAR
+    function safeModalOpen(modalId) {
+        var myModalEl = document.getElementById(modalId);
+        if (!myModalEl) return;
+        var modalInstance = bootstrap.Modal.getInstance(myModalEl) || new bootstrap.Modal(myModalEl);
+        modalInstance.show();
+    }
+
+    // 📝 3. GÖNDERİ İŞLEMLERİ (DÜZENLEME & SİLME)
+    function modalAc(id) {
+        safeModalOpen('profilDuzenleModal');
+        document.getElementById('modalIcerik').innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-primary"></div></div>';
+        fetch('/Kesfet/PaylasimDuzenleGetir/' + id).then(res => res.text()).then(html => { document.getElementById('modalIcerik').innerHTML = html; });
+    }
+
+    function paylasimKaydet() {
+        var form = document.getElementById('paylasimDuzenleForm');
+        if(!form) return;
+        var formData = new FormData(form);
+        fetch('/Kesfet/PaylasimDuzenleKaydet', { method: 'POST', body: formData })
+        .then(res => res.json()).then(data => { if (data.success) { location.reload(); } else { alert('Hata: ' + data.message); } })
+        .catch(err => alert("Bağlantı hatası."));
+    }
+
+    function paylasimSil(id) {
+        if (confirm('Bu gönderiyi silmek istediğine emin misin?')) {
+            fetch('/Kesfet/PaylasimSil?id=' + id, { method: 'POST' }).then(res => res.json()).then(data => { if (data.success) { location.reload(); } });
+        }
+    }
+
+    // ❤️ 4. SOSYAL ETKİLEŞİM MODALLARI (BEĞENİ & YORUM)
+    function begenenleriGoster(paylasimId) {
+        safeModalOpen('listeModal');
+        document.getElementById('listeModalIcerik').innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-primary"></div></div>';
+        fetch('/Kullanicilar/BegenenleriGetir?paylasimId=' + paylasimId).then(res => res.text()).then(html => { document.getElementById('listeModalIcerik').innerHTML = html; });
+    }
+
+    function yorumlariGoster(paylasimId) {
+        safeModalOpen('listeModal');
+        document.getElementById('listeModalIcerik').innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-primary"></div></div>';
+        fetch('/Kullanicilar/YorumlariGetir?paylasimId=' + paylasimId).then(res => res.text()).then(html => { document.getElementById('listeModalIcerik').innerHTML = html; });
+    }
+
+    // 👤 5. PROFİL VE DİĞER FONKSİYONLAR
+    function listeAc(tur, userId) {
+        safeModalOpen('listeModal');
+        document.getElementById('listeModalIcerik').innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-primary"></div></div>';
+        fetch('/Kullanicilar/ProfilListesiGetir?id=' + userId + '&tur=' + tur).then(res => res.text()).then(html => { document.getElementById('listeModalIcerik').innerHTML = html; });
+    }
+
+    function profilDuzenleModalAc() {
+        safeModalOpen('profilAyarlariModal');
+        document.getElementById('profilAyarlariIcerik').innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-primary"></div></div>';
+        fetch('/Kullanicilar/ProfilDuzenleGetir').then(res => res.text()).then(html => { document.getElementById('profilAyarlariIcerik').innerHTML = html; });
+    }
+
+    function profiliKaydet() {
+        var form = document.getElementById('profilForm');
+        if(!form) return;
+        fetch('/Kullanicilar/ProfilDuzenleKaydet', { method: 'POST', body: new FormData(form) }).then(res => res.json()).then(data => { if (data.success) location.reload(); });
+    }
+
+    function analizBaslat() {
+        safeModalOpen('analizModal');
+        document.getElementById('analizModalIcerik').innerHTML = `<div class="p-5 text-center"><div class="spinner-grow text-warning mb-3"></div><h5 class="fw-bold">Yapay Zeka Seni İnceliyor...</h5></div>`;
+        fetch('/Kullanicilar/AnalizGetir').then(res => res.text()).then(html => { document.getElementById('analizModalIcerik').innerHTML = html; });
+    }
+</script>
+
+<style>
+    .hover-bg-gray:hover {
+        background-color: #e9ecef !important;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .hover-scale {
+        transition: transform 0.2s, color 0.2s;
+    }
+
+        .hover-scale:hover {
+            transform: scale(1.1);
+            color: #0d6efd;
+        }
+</style>

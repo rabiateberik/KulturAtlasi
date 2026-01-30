@@ -1,0 +1,31 @@
+﻿@model KulturAtlasi.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Gizli Hesap";
+}
+
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg p-5 rounded-4">
+
+                <div class="mb-4 text-secondary">
+                    <i class="bi bi-shield-lock-fill" style="font-size: 5rem;"></i>
+                </div>
+
+                <h2 class="fw-bold text-dark mb-1">Bu Hesap Gizli</h2>
+                <p class="text-muted fs-5 mb-4">@@@Model.KullaniciAdi</p>
+
+                <div class="alert alert-light border text-muted small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Bu kullanıcının kütüphanesini ve paylaşımlarını sadece kendisi görebilir.
+                </div>
+
+                <a href="/Kullanicilar" class="btn btn-primary rounded-pill px-4 mt-2 fw-bold">
+                    <i class="bi bi-arrow-left"></i> Topluluğa Dön
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>

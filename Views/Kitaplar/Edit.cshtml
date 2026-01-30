@@ -1,0 +1,149 @@
+﻿@model KulturAtlasi.Models.Kitap
+
+@{
+    ViewData["Title"] = "Kitabı Düzenle";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <div class="card shadow-lg border-0 overflow-hidden">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square"></i> Kitabı Düzenle: @Model.Baslik</h5>
+                </div>
+
+                <div class="card-body p-0">
+                    <form asp-action="Edit" enctype="multipart/form-data">
+                        <div class="row g-0">
+
+                            <div class="col-md-4 bg-light d-flex align-items-center justify-content-center p-3 border-end">
+                                <div class="text-center w-100">
+                                    <h6 class="text-muted small mb-2">Mevcut Kapak</h6>
+                                    <img id="imgOnizleme"
+                                         src="@(string.IsNullOrEmpty(Model.KapakResmiYolu) ? "https://via.placeholder.com/300x450?text=Kapak+Yok" : Model.KapakResmiYolu)"
+                                         class="img-fluid rounded shadow-sm"
+                                         style="max-height: 400px; object-fit: cover;"
+                                         onerror="this.src='https://via.placeholder.com/300x450?text=Hata'">
+                                </div>
+                            </div>
+
+                            <div class="col-md-8 p-4">
+                                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                                <input type="hidden" asp-for="KitapID" />
+                                <input type="hidden" asp-for="KayitTarihi" />
+                                <input type="hidden" asp-for="KullaniciID" />
+                                <input type="hidden" asp-for="KapakResmiYolu" id="inputKapakResmi" />
+
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Baslik" class="form-control fw-bold" placeholder="Kitap Adı" />
+                                    <label asp-for="Baslik">Kitap Adı</label>
+                                    <span asp-validation-for="Baslik" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Tur" class="form-control text-primary" placeholder="Türü" />
+                                    <label asp-for="Tur">Türü / Kategorisi</label>
+                                    <span asp-validation-for="Tur" class="text-danger"></span>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input asp-for="Yazar" class="form-control" placeholder="Yazar" />
+                                            <label asp-for="Yazar">Yazar</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input asp-for="ISBN" class="form-control" placeholder="ISBN" />
+                                            <label asp-for="ISBN">ISBN</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select asp-for="DurumID" class="form-select" asp-items="ViewBag.DurumID"></select>
+                                            <label asp-for="DurumID">Durumu</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input asp-for="KullaniciPuani" type="number" min="1" max="5" class="form-control" placeholder="Puan" />
+                                            <label asp-for="KullaniciPuani">Puan (1-5)</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 border rounded p-2 bg-light">
+                                    <label class="form-label small fw-bold text-primary">Kapağı Değiştir (İsteğe Bağlı)</label>
+
+                                    <div class="input-group input-group-sm mb-2">
+                                        <input type="text" class="form-control" placeholder="Yeni Resim Linki Yapıştır..." onchange="resmiLinktenGuncelle(this)">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="linkButonuTikla()">Uygula</button>
+                                    </div>
+
+                                    <div class="text-center text-muted small my-1">- VEYA -</div>
+
+                                    <input type="file" name="resimDosyasi" class="form-control form-control-sm" accept="image/*" onchange="resmiDosyadanGuncelle(this)">
+                                </div>
+
+                                <div class="form-floating mb-4">
+                                    <textarea asp-for="Aciklama" class="form-control" placeholder="Özet" style="height: 100px"></textarea>
+                                    <label asp-for="Aciklama">Özet / Notlar</label>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-action="Index" class="btn btn-outline-secondary px-4">İptal</a>
+                                    <button type="submit" class="btn btn-primary fw-bold px-4">
+                                        <i class="bi bi-check-lg"></i> Değişiklikleri Kaydet
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Link kutusuna yazınca çalışır
+        function resmiLinktenGuncelle(input) {
+            var url = input.value;
+            if(url) {
+                document.getElementById('imgOnizleme').src = url;
+                document.getElementById('inputKapakResmi').value = url; // Hidden inputu güncelle
+            }
+        }
+
+        // Butona basınca çalışır (inputtan okur)
+        function linkButonuTikla() {
+            var input = event.target.previousElementSibling;
+            resmiLinktenGuncelle(input);
+        }
+
+        // Dosya seçince çalışır
+        function resmiDosyadanGuncelle(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imgOnizleme').src = e.target.result;
+                    // Hidden inputu temizle ki Controller dosya yüklendiğini anlasın
+                    document.getElementById('inputKapakResmi').value = "";
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}
